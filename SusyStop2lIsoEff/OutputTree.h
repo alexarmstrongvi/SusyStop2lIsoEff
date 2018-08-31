@@ -7,14 +7,14 @@
 using std::vector;
 using std::cout;
 
-enum EleIDWP {tightLLH, mediumLLH, looseLLHBLayer, looseLLH, veryLooseLLH, N_EL_IDWPs};
+enum EleIDWP {tightLLH, mediumLLH, looseLLHBLayer, looseLLH, N_EL_IDWPs};
 enum MuoIDWP {tight, medium, loose, veryLoose, N_MU_IDWPs};
 enum IsoWP {isoGradient, isoGradientLoose, isoLoose, isoLooseTrackOnly, isoFixedCutTightTrackOnly, N_ISO_WPs};
 
 /// List of options to be looped over
 // Every combination of the options below is used
 vector<int> el_ID_WP_ops = {looseLLHBLayer};
-vector<float> el_pt_min_ops = {10.0, 15.0};
+vector<float> el_pt_min_ops = {10.0};
 vector<int> mu_ID_WP_ops =  {medium};
 vector<float> mu_pt_min_ops = {10.0};
 vector<int> el_iso_WP_ops = {isoGradient, isoGradientLoose, isoLoose, isoLooseTrackOnly, isoFixedCutTightTrackOnly,};

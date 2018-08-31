@@ -53,7 +53,10 @@ class SusyStop2lIsoEff : public SusyNtAna
         virtual Bool_t Process(Long64_t entry); // Main event loop function called on each event
         virtual void Terminate(); // Terminate is called after looping has finished
 
-        int nBaselineLepsBeforeOR();
+        ElectronVector getBaselineElectrons(const ElectronVector& preElecs, const OutputTree& conf);
+        ElectronVector getSignalElectrons(const ElectronVector& baseElecs, const OutputTree& conf);
+        MuonVector getBaselineMuons(const MuonVector& preMuons, const OutputTree& conf);
+        MuonVector getSignalMuons(const MuonVector& baseMuons, const OutputTree& conf);
 
     private :
         int m_dbg;

@@ -82,46 +82,148 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
                 << "  run " << run_number << "  event " << event_number << " **** " << endl;
     }
 
-    // SusyNtAna::selectObject fills the baseline and signal objects
-    // for the given AnalysisType
-    // m_preX    = objects before any selection (as they are in susyNt)
-    // m_baseX   = objects with the Analysis' baseline selection AND overlap removal applied
-    // m_signalX = objects with the Analysis' signal selection applied (and baseline AND overlap removal)
-    SusyNtAna::selectObjects();
-
-    // get the MC weight using the inherited MCWeighter object
-    // (c.f. SusyNtuple/MCWeighter.h)
-    if(nt.evt()->isMC) {
-        float lumi = 100000; // normalize the MC to 100 fb-1
-        m_mc_weight = SusyNtAna::mcWeighter().getMCWeight(nt.evt(), lumi, NtSys::NOM);
-    }
-    else {
-        m_mc_weight = 1.; // don't re-weight data
-    }
-
-    // check that the event passes the standard ATLAS event cleaning cuts
-    if(!passEventCleaning(m_preMuons, m_baseMuons, m_baseJets)) return false;
-
     // Fill output trees for each configuration setup
     for (auto conf : m_conf_vec) {
+        //SusyNtAna::selectObjects();
+        SusyNtAna::clearObjects();
+        Susy::NtSys::SusyNtSys sys = Susy::NtSys::NOM;
+        m_nttools.getPreObjects(&nt, sys, m_preElectrons, m_preMuons, m_preJets, m_preTaus, m_prePhotons);
+        
+        //m_nttools.getBaselineObjects(m_preElectrons, m_preMuons, m_preJets, m_preTaus, m_prePhotons,
+        //                             m_baseElectrons, m_baseMuons, m_baseJets, m_baseTaus, m_basePhotons);
+        m_baseElectrons = getBaselineElectrons(m_preElectrons, *conf);
+        m_baseMuons     = getBaselineMuons(m_preMuons, *conf);
+        m_baseJets      = m_nttools.getBaselineJets(m_preJets);
+        m_baseTaus      = m_nttools.getBaselineTaus(m_preTaus);
+        m_basePhotons   = m_nttools.getBaselinePhotons(m_prePhotons);
+        
+        int n_baseLep_beforeOR = m_baseMuons.size() + m_baseElectrons.size();
+        m_nttools.overlapTool().performOverlap(m_baseElectrons, m_baseMuons, m_baseJets, m_baseTaus, m_basePhotons);
+        int n_baseLep_afterOR = m_baseMuons.size() + m_baseElectrons.size();
+        
+        //m_nttools.getSignalObjects(m_baseElectrons, m_baseMuons, m_baseJets, m_baseTaus, m_basePhotons,
+        //                           m_signalElectrons, m_signalMuons, m_signalJets, m_signalTaus, m_signalPhotons);
+        m_signalElectrons = getSignalElectrons(m_baseElectrons, *conf);
+        m_signalMuons     = getSignalMuons(m_baseMuons, *conf);
+        m_signalJets      = m_nttools.getSignalJets(m_baseJets);
+        m_signalTaus      = m_nttools.getSignalTaus(m_baseTaus);
+        m_signalPhotons   = m_nttools.getSignalPhotons(m_basePhotons);
+        //m_nttools.buildLeptons(m_preLeptons, m_preElectrons, m_preMuons);
+        //m_nttools.buildLeptons(m_baseLeptons, m_baseElectrons, m_baseMuons);
+        //m_nttools.buildLeptons(m_signalLeptons, m_signalElectrons, m_signalMuons);
+        int n_signalLep = m_signalElectrons.size() + m_signalMuons.size();
+        //
+        //SusyNtSys metSys = sys;
+        //m_met = m_nttools.getMet(&nt, metSys);
+        //m_trackMet = m_nttools.getTrackMet(&nt, metSys);
 
-        // TODO: Use config options to dynamically define baseline leps and OR
+        // get the MC weight using the inherited MCWeighter object
+        // (c.f. SusyNtuple/MCWeighter.h)
+        if(nt.evt()->isMC) {
+            float lumi = 100000; // normalize the MC to 100 fb-1
+            m_mc_weight = SusyNtAna::mcWeighter().getMCWeight(nt.evt(), lumi, NtSys::NOM);
+        }
+        else {
+            m_mc_weight = 1.; // don't re-weight data
+        }
+        // check that the event passes the standard ATLAS event cleaning cuts
+        if(!passEventCleaning(m_preMuons, m_baseMuons, m_baseJets)) return false;
 
-        conf->n_den_leps += nBaselineLepsBeforeOR() * m_mc_weight; 
-        conf->n_den_leps_pass_or += m_baseLeptons.size() * m_mc_weight;
-        conf->n_num_leps += m_signalLeptons.size() * m_mc_weight;
+        conf->n_den_leps += n_baseLep_beforeOR * m_mc_weight; 
+        conf->n_den_leps_pass_or += n_baseLep_afterOR * m_mc_weight;
+        conf->n_num_leps += n_signalLep * m_mc_weight;
     } 
     
     return kTRUE;
 }
 //////////////////////////////////////////////////////////////////////////////
-int SusyStop2lIsoEff::nBaselineLepsBeforeOR() {
-    int nBaseEl = m_nttools.getBaselineElectrons(m_preElectrons).size();
-    int nBaseMu = m_nttools.getBaselineMuons(m_preMuons).size();
-    
-    return nBaseEl + nBaseMu;
-}
+/*--------------------------------------------------------------------------------*/
+ElectronVector SusyStop2lIsoEff::getSignalElectrons(const ElectronVector& baseElecs, const OutputTree& conf)
+{
+    ElectronVector sigElecs;
+    for (uint ie = 0; ie < baseElecs.size(); ++ie) {
+        Electron* e = baseElecs.at(ie);
+        bool pass_iso = false;
+        if (conf.el_iso_WP == isoFixedCutTightTrackOnly) pass_iso = e->isoFixedCutTightTrackOnly;
+        else if (conf.el_iso_WP == isoLooseTrackOnly) pass_iso = e->isoLooseTrackOnly;
+        else if (conf.el_iso_WP == isoLoose) pass_iso = e->isoLoose;
+        else if (conf.el_iso_WP == isoGradientLoose) pass_iso = e->isoGradientLoose;
+        else if (conf.el_iso_WP == isoGradient) pass_iso = e->isoGradient;
+        
+        bool pass_signal = pass_iso;
+        if (pass_signal){
+            sigElecs.push_back(e);
+        }
+    }
+    // sort by pT
+    std::sort(sigElecs.begin(), sigElecs.end(), comparePt);
 
+    return sigElecs;
+}
+MuonVector SusyStop2lIsoEff::getSignalMuons(const MuonVector& baseMuons, const OutputTree& conf)
+{
+    MuonVector sigMuons;
+    for (uint im = 0; im < baseMuons.size(); ++im) {
+        Muon* mu = baseMuons.at(im);
+        bool pass_iso = false;
+        if (conf.el_iso_WP == isoFixedCutTightTrackOnly) pass_iso = mu->isoFixedCutTightTrackOnly;
+        else if (conf.el_iso_WP == isoLooseTrackOnly) pass_iso = mu->isoLooseTrackOnly;
+        else if (conf.el_iso_WP == isoLoose) pass_iso = mu->isoLoose;
+        else if (conf.el_iso_WP == isoGradientLoose) pass_iso = mu->isoGradientLoose;
+        else if (conf.el_iso_WP == isoGradient) pass_iso = mu->isoGradient;
+
+        bool pass_signal = pass_iso;
+        if (pass_signal) sigMuons.push_back(mu);
+    }
+    // sort by pT
+    std::sort(sigMuons.begin(), sigMuons.end(), comparePt);
+    
+    return sigMuons;
+}
+/*--------------------------------------------------------------------------------*/
+ElectronVector SusyStop2lIsoEff::getBaselineElectrons(const ElectronVector& preElecs, const OutputTree& conf)
+{
+    ElectronVector elecs;
+    for (uint ie = 0; ie < preElecs.size(); ++ie) {
+        Electron* e = preElecs.at(ie);
+        bool pass_OQ = e->passOQBadClusElectron;
+        bool pass_pt = (e->Pt() > conf.el_pt_min);
+        bool pass_eta = (fabs(e->clusEta) <  2.47);
+        bool pass_ID = false;
+        if (conf.el_ID_WP == looseLLH) pass_ID = e->looseLLH;
+        else if (conf.el_ID_WP == looseLLHBLayer) pass_ID = e->looseLLHBLayer;
+        else if (conf.el_ID_WP == mediumLLH) pass_ID = e->mediumLLH;
+        else if (conf.el_ID_WP == tightLLH) pass_ID = e->tightLLH;
+        
+        bool pass_base = pass_OQ && pass_pt && pass_eta && pass_ID;
+        if(pass_base) elecs.push_back(e);
+    } // ie
+    // sort by pT
+    std::sort(elecs.begin(), elecs.end(), comparePt);
+
+    return elecs;
+}
+MuonVector SusyStop2lIsoEff::getBaselineMuons(const MuonVector& preMuons, const OutputTree& conf)
+{
+    MuonVector baseMuons;
+    for (uint im = 0; im < preMuons.size(); ++im) {
+        Muon* mu = preMuons.at(im);
+        bool pass_pt = (mu->Pt() > conf.mu_pt_min);
+        bool pass_eta = (fabs(mu->Eta()) <  2.4);
+        bool pass_ID = false;
+        if (conf.mu_ID_WP == veryLoose) pass_ID = (mu->veryLoose);
+        else if (conf.mu_ID_WP == loose) pass_ID = (mu->loose);
+        else if (conf.mu_ID_WP == medium) pass_ID = (mu->medium);
+        else if (conf.mu_ID_WP == tight) pass_ID = (mu->tight);
+        
+        bool pass_base = pass_pt && pass_eta && pass_ID;
+        if(pass_base) baseMuons.push_back(mu);
+    } // im
+    // sort by pT
+    std::sort(baseMuons.begin(), baseMuons.end(), comparePt);
+
+    return baseMuons;
+}
 
 bool SusyStop2lIsoEff::passEventCleaning(const MuonVector& preMuons, const MuonVector& baseMuons,
             const JetVector& baseJets)
