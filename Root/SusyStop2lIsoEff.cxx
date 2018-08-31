@@ -28,6 +28,31 @@ void SusyStop2lIsoEff::Begin(TTree* /*tree*/)
     SusyNtAna::Begin(0);
     if(dbg()) cout << "SusyStop2lIsoEff::Begin" << endl;
 
+    // Create list of configuration setups
+    // Nested loops baby
+    for (auto el_ID_WP_op : el_ID_WP_ops) {
+    for (auto el_pt_min_op : el_pt_min_ops) {
+    for (auto mu_ID_WP_op : mu_ID_WP_ops) {
+    for (auto mu_pt_min_op : mu_pt_min_ops) {
+    for (auto el_iso_WP_op : el_iso_WP_ops) {
+    for (auto mu_iso_WP_op : mu_iso_WP_ops) {
+    for (auto j_e_bjet_or_op : j_e_bjet_or_ops) {
+    for (auto j_m_bjet_or_op : j_m_bjet_or_ops) {
+      string conf_name = "name";
+      OutputTree* conf = new OutputTree("name", "title");
+      conf->initialize();
+      conf->el_ID_WP = el_ID_WP_op;
+      conf->el_pt_min = el_pt_min_op;
+      conf->mu_ID_WP = mu_ID_WP_op;
+      conf->mu_pt_min = mu_pt_min_op;
+      conf->el_iso_WP = el_iso_WP_op;
+      conf->mu_iso_WP = mu_iso_WP_op;
+      conf->j_e_bjet_or = j_e_bjet_or_op;
+      conf->j_m_bjet_or = j_m_bjet_or_op;
+      conf->Print();
+      conf_vec.push_back(conf);
+
+    }}}}}}}}
     return;
 }
 //////////////////////////////////////////////////////////////////////////////
@@ -70,10 +95,27 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
     // check that the event passes the standard ATLAS event cleaning cuts
     if(!passEventCleaning(m_preMuons, m_baseMuons, m_baseJets)) return false;
 
+    // Fill output trees for each configuration setup
+    for (auto conf : conf_vec) {
 
+        // TODO: Use config options to dynamically define baseline leps and OR
+
+        conf->n_den_leps += nBaselineLepsBeforeOR() * m_mc_weight; 
+        conf->n_den_leps_pass_or += m_baseLeptons.size() * m_mc_weight;
+        conf->n_num_leps += m_signalLeptons.size() * m_mc_weight;
+    } 
+    
     return kTRUE;
 }
 //////////////////////////////////////////////////////////////////////////////
+int SusyStop2lIsoEff::nBaselineLepsBeforeOR() {
+    int nBaseEl = m_nttools.getBaselineElectrons(m_preElectrons).size();
+    int nBaseMu = m_nttools.getBaselineMuons(m_preMuons).size();
+    
+    return nBaseEl + nBaseMu;
+}
+
+
 bool SusyStop2lIsoEff::passEventCleaning(const MuonVector& preMuons, const MuonVector& baseMuons,
             const JetVector& baseJets)
 {
@@ -112,6 +154,12 @@ bool SusyStop2lIsoEff::passEventCleaning(const MuonVector& preMuons, const MuonV
 //////////////////////////////////////////////////////////////////////////////
 void SusyStop2lIsoEff::Terminate()
 {
+    for (auto conf : conf_vec) {
+        conf->calculateResults();
+        conf->Print();
+        delete conf;
+    }
+    conf_vec.clear();
     // close SusyNtAna and print timers
     SusyNtAna::Terminate();
 

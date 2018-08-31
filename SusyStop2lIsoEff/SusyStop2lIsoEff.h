@@ -12,6 +12,9 @@
 //std/stl
 #include <fstream>
 
+//User classes
+#include "SusyStop2lIsoEff/OutputTree.h"
+
 /////////////////////////////////////////////////////////////
 //
 // SusyStop2lIsoEff
@@ -49,11 +52,13 @@ class SusyStop2lIsoEff : public SusyNtAna
         virtual Bool_t Process(Long64_t entry); // Main event loop function called on each event
         virtual void Terminate(); // Terminate is called after looping has finished
 
+        int nBaselineLepsBeforeOR();
 
     private :
         int m_dbg;
         TChain* m_input_chain; // the TChain object we are processing
         float m_mc_weight;
+        vector<OutputTree*> conf_vec;
 
 }; //class
 
