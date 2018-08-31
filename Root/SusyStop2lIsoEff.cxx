@@ -96,8 +96,8 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
         m_baseJets      = m_nttools.getBaselineJets(m_preJets);
         m_baseTaus      = m_nttools.getBaselineTaus(m_preTaus);
         m_basePhotons   = m_nttools.getBaselinePhotons(m_prePhotons);
-        
         int n_baseLep_beforeOR = m_baseMuons.size() + m_baseElectrons.size();
+        
         m_nttools.overlapTool().performOverlap(m_baseElectrons, m_baseMuons, m_baseJets, m_baseTaus, m_basePhotons);
         int n_baseLep_afterOR = m_baseMuons.size() + m_baseElectrons.size();
         
@@ -166,11 +166,11 @@ MuonVector SusyStop2lIsoEff::getSignalMuons(const MuonVector& baseMuons, const O
     for (uint im = 0; im < baseMuons.size(); ++im) {
         Muon* mu = baseMuons.at(im);
         bool pass_iso = false;
-        if (conf.el_iso_WP == isoFixedCutTightTrackOnly) pass_iso = mu->isoFixedCutTightTrackOnly;
-        else if (conf.el_iso_WP == isoLooseTrackOnly) pass_iso = mu->isoLooseTrackOnly;
-        else if (conf.el_iso_WP == isoLoose) pass_iso = mu->isoLoose;
-        else if (conf.el_iso_WP == isoGradientLoose) pass_iso = mu->isoGradientLoose;
-        else if (conf.el_iso_WP == isoGradient) pass_iso = mu->isoGradient;
+        if (conf.mu_iso_WP == isoFixedCutTightTrackOnly) pass_iso = mu->isoFixedCutTightTrackOnly;
+        else if (conf.mu_iso_WP == isoLooseTrackOnly) pass_iso = mu->isoLooseTrackOnly;
+        else if (conf.mu_iso_WP == isoLoose) pass_iso = mu->isoLoose;
+        else if (conf.mu_iso_WP == isoGradientLoose) pass_iso = mu->isoGradientLoose;
+        else if (conf.mu_iso_WP == isoGradient) pass_iso = mu->isoGradient;
 
         bool pass_signal = pass_iso;
         if (pass_signal) sigMuons.push_back(mu);
