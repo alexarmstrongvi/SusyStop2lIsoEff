@@ -3,6 +3,7 @@
 
 //ROOT
 #include "TTree.h"
+#include "TFile.h"
 #include "TChain.h"
 
 //SusyNtuple
@@ -58,7 +59,10 @@ class SusyStop2lIsoEff : public SusyNtAna
         int m_dbg;
         TChain* m_input_chain; // the TChain object we are processing
         float m_mc_weight;
-        vector<OutputTree*> conf_vec;
+        vector<OutputTree*> m_conf_vec;
+        TFile* m_ofile;
+        OutputTree *m_otree;
+
 
 }; //class
 

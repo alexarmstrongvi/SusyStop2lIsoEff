@@ -28,31 +28,38 @@ void SusyStop2lIsoEff::Begin(TTree* /*tree*/)
     SusyNtAna::Begin(0);
     if(dbg()) cout << "SusyStop2lIsoEff::Begin" << endl;
 
+    
     // Create list of configuration setups
-    // Nested loops baby
+    unsigned int config_counter = 0;
     for (auto el_ID_WP_op : el_ID_WP_ops) {
     for (auto el_pt_min_op : el_pt_min_ops) {
     for (auto mu_ID_WP_op : mu_ID_WP_ops) {
     for (auto mu_pt_min_op : mu_pt_min_ops) {
-    for (auto el_iso_WP_op : el_iso_WP_ops) {
-    for (auto mu_iso_WP_op : mu_iso_WP_ops) {
     for (auto j_e_bjet_or_op : j_e_bjet_or_ops) {
     for (auto j_m_bjet_or_op : j_m_bjet_or_ops) {
-      string conf_name = "name";
-      OutputTree* conf = new OutputTree("name", "title");
-      conf->initialize();
-      conf->el_ID_WP = el_ID_WP_op;
-      conf->el_pt_min = el_pt_min_op;
-      conf->mu_ID_WP = mu_ID_WP_op;
-      conf->mu_pt_min = mu_pt_min_op;
-      conf->el_iso_WP = el_iso_WP_op;
-      conf->mu_iso_WP = mu_iso_WP_op;
-      conf->j_e_bjet_or = j_e_bjet_or_op;
-      conf->j_m_bjet_or = j_m_bjet_or_op;
-      conf->Print();
-      conf_vec.push_back(conf);
-
-    }}}}}}}}
+        config_counter++;  
+        for (auto el_iso_WP_op : el_iso_WP_ops) {
+        for (auto mu_iso_WP_op : mu_iso_WP_ops) {
+            // Initialize
+            string conf_name = "name";
+            OutputTree* conf = new OutputTree(conf_name.c_str(), "title");
+            conf->initialize();
+            // Baseline config options
+            conf->config_id = config_counter;
+            conf->el_ID_WP = el_ID_WP_op;
+            conf->el_pt_min = el_pt_min_op;
+            conf->mu_ID_WP = mu_ID_WP_op;
+            conf->mu_pt_min = mu_pt_min_op;
+            // Overlap removal options
+            conf->j_e_bjet_or = j_e_bjet_or_op;
+            conf->j_m_bjet_or = j_m_bjet_or_op;
+            // Isolation WPs
+            conf->el_iso_WP = el_iso_WP_op;
+            conf->mu_iso_WP = mu_iso_WP_op;
+            // Store configuration setup 
+            m_conf_vec.push_back(conf);
+        }}
+    }}}}}}
     return;
 }
 //////////////////////////////////////////////////////////////////////////////
@@ -96,7 +103,7 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
     if(!passEventCleaning(m_preMuons, m_baseMuons, m_baseJets)) return false;
 
     // Fill output trees for each configuration setup
-    for (auto conf : conf_vec) {
+    for (auto conf : m_conf_vec) {
 
         // TODO: Use config options to dynamically define baseline leps and OR
 
@@ -154,12 +161,24 @@ bool SusyStop2lIsoEff::passEventCleaning(const MuonVector& preMuons, const MuonV
 //////////////////////////////////////////////////////////////////////////////
 void SusyStop2lIsoEff::Terminate()
 {
-    for (auto conf : conf_vec) {
+    m_ofile = new TFile("isoEff.root","RECREATE");
+    m_ofile->cd();
+    m_otree = new OutputTree("outputTree","Title");
+    m_otree->initialize();
+    for (auto conf : m_conf_vec) {
         conf->calculateResults();
-        conf->Print();
-        delete conf;
+        //conf->Print();
+        *m_otree = *conf;
+        m_otree->Print();
+        m_otree->Fill();
+        //delete conf;
     }
-    conf_vec.clear();
+    m_ofile->Write();
+    m_conf_vec.clear();
+    m_ofile->Close();
+    //delete m_otree;
+    //delete m_ofile;
+
     // close SusyNtAna and print timers
     SusyNtAna::Terminate();
 
