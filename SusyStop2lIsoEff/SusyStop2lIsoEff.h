@@ -14,7 +14,8 @@
 #include <fstream>
 
 //User classes
-#include "SusyStop2lIsoEff/OutputTree.h"
+#include "SusyStop2lIsoEff/EffTree.h"
+#include "SusyStop2lIsoEff/HistTree.h"
 
 /////////////////////////////////////////////////////////////
 //
@@ -53,18 +54,23 @@ class SusyStop2lIsoEff : public SusyNtAna
         virtual Bool_t Process(Long64_t entry); // Main event loop function called on each event
         virtual void Terminate(); // Terminate is called after looping has finished
 
-        ElectronVector getBaselineElectrons(const ElectronVector& preElecs, const OutputTree& conf);
-        ElectronVector getSignalElectrons(const ElectronVector& baseElecs, const OutputTree& conf);
-        MuonVector getBaselineMuons(const MuonVector& preMuons, const OutputTree& conf);
-        MuonVector getSignalMuons(const MuonVector& baseMuons, const OutputTree& conf);
+        ElectronVector getBaselineElectrons(const ElectronVector& preElecs, const EffTree& conf);
+        ElectronVector getSignalElectrons(const ElectronVector& baseElecs, const EffTree& conf);
+        MuonVector getBaselineMuons(const MuonVector& preMuons, const EffTree& conf);
+        MuonVector getSignalMuons(const MuonVector& baseMuons, const EffTree& conf);
 
+        int get_lepton_truth_class(const Susy::Lepton* lepton);
+        int n_prompt_leptons(const LeptonVector& leptons);
+        int n_fake_leptons(const LeptonVector& leptons);
     private :
         int m_dbg;
         TChain* m_input_chain; // the TChain object we are processing
         float m_mc_weight;
-        vector<OutputTree*> m_conf_vec;
+        bool m_make_hists;
+        vector<EffTree*> m_conf_vec;
+        vector<HistTree*> m_hist_vec;
         TFile* m_ofile;
-        OutputTree *m_otree;
+        EffTree *m_effTree;
 
 
 }; //class
