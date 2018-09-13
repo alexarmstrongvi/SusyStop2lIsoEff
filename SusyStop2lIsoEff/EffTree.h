@@ -33,12 +33,12 @@ public:
     : TTree(name, title) {}
   //////////////////////////////////////////////////////////////////////////////
   // Define variables for branches
-    
+
   unsigned int config_id = 0;
   // Baseline lepton definitions
-  int el_ID_WP = N_EL_IDWPs; 
+  int el_ID_WP = N_EL_IDWPs;
   float el_pt_min = 0;
-  int mu_ID_WP = N_MU_IDWPs; 
+  int mu_ID_WP = N_MU_IDWPs;
   float mu_pt_min = 0;
 
   // Overlap removal toggles
@@ -48,8 +48,8 @@ public:
   bool m_j_sliding_cone_or = true;
 
   // Isolation WPs
-  int el_iso_WP = N_ISO_WPs;  
-  int mu_iso_WP = N_ISO_WPs;  
+  int el_iso_WP = N_ISO_WPs;
+  int mu_iso_WP = N_ISO_WPs;
   //float etconetopo20_max = FLT_MAX;
   //float etconetopo30_max = FLT_MAX;
   //float ptvarcone20_max = FLT_MAX;
@@ -100,18 +100,30 @@ public:
     this->mu_iso_WP = rhs.mu_iso_WP;
     this->truth_matching = rhs.truth_matching;
 
-    this->n_fake_den_leps = rhs.n_fake_den_leps;
-    this->n_real_den_leps = rhs.n_real_den_leps;
-    this->n_fake_den_leps_pass_or = rhs.n_fake_den_leps_pass_or;
-    this->n_real_den_leps_pass_or = rhs.n_real_den_leps_pass_or;
-    this->n_fake_num_leps = rhs.n_fake_num_leps;
-    this->n_real_num_leps = rhs.n_real_num_leps;
-    this->fake_or_eff = rhs.fake_or_eff;
-    this->real_or_eff = rhs.real_or_eff;
-    this->fake_iso_plus_or_eff = rhs.fake_iso_plus_or_eff;
-    this->real_iso_plus_or_eff = rhs.real_iso_plus_or_eff;
-    this->fake_iso_after_or_eff = rhs.fake_iso_after_or_eff;
-    this->real_iso_after_or_eff = rhs.real_iso_after_or_eff;
+    this->n_fake_den_el = rhs.n_fake_den_el;
+    this->n_fake_den_el_pass_or = rhs.n_fake_den_el_pass_or;
+    this->n_fake_num_el = rhs.n_fake_num_el;
+    this->fake_el_or_eff = rhs.fake_el_or_eff;
+    this->fake_el_iso_plus_or_eff = rhs.fake_el_iso_plus_or_eff;
+    this->fake_el_iso_after_or_eff = rhs.fake_el_iso_after_or_eff;
+    this->n_fake_den_mu = rhs.n_fake_den_mu;
+    this->n_fake_den_mu_pass_or = rhs.n_fake_den_mu_pass_or;
+    this->n_fake_num_mu = rhs.n_fake_num_mu;
+    this->fake_mu_or_eff = rhs.fake_mu_or_eff;
+    this->fake_mu_iso_plus_or_eff = rhs.fake_mu_iso_plus_or_eff;
+    this->fake_mu_iso_after_or_eff = rhs.fake_mu_iso_after_or_eff;
+    this->n_real_den_el = rhs.n_real_den_el;
+    this->n_real_den_el_pass_or = rhs.n_real_den_el_pass_or;
+    this->n_real_num_el = rhs.n_real_num_el;
+    this->real_el_or_eff = rhs.real_el_or_eff;
+    this->real_el_iso_plus_or_eff = rhs.real_el_iso_plus_or_eff;
+    this->real_el_iso_after_or_eff = rhs.real_el_iso_after_or_eff;
+    this->n_real_den_mu = rhs.n_real_den_mu;
+    this->n_real_den_mu_pass_or = rhs.n_real_den_mu_pass_or;
+    this->n_real_num_mu = rhs.n_real_num_mu;
+    this->real_mu_or_eff = rhs.real_mu_or_eff;
+    this->real_mu_iso_plus_or_eff = rhs.real_mu_iso_plus_or_eff;
+    this->real_mu_iso_after_or_eff = rhs.real_mu_iso_after_or_eff;
     return *this;
   }
   //////////////////////////////////////////////////////////////////////////////
@@ -129,16 +141,35 @@ public:
     this->Branch ("el_iso_WP", &el_iso_WP);
     this->Branch ("mu_iso_WP", &mu_iso_WP);
     this->Branch ("truth_matching", &truth_matching);
-    this->Branch ("fake_or_eff", &fake_or_eff);
-    this->Branch ("real_or_eff", &real_or_eff);
-    this->Branch ("fake_iso_plus_or_eff", &fake_iso_plus_or_eff);
-    this->Branch ("real_iso_plus_or_eff", &real_iso_plus_or_eff);
-    this->Branch ("fake_iso_after_or_eff", &fake_iso_after_or_eff);
-    this->Branch ("real_iso_after_or_eff", &real_iso_after_or_eff);
+
+    this->Branch ("n_fake_den_el", &n_fake_den_el);
+    this->Branch ("n_fake_den_el_pass_or", &n_fake_den_el_pass_or);
+    this->Branch ("n_fake_num_el", &n_fake_num_el);
+    this->Branch ("fake_el_or_eff", &fake_el_or_eff);
+    this->Branch ("fake_el_iso_plus_or_eff", &fake_el_iso_plus_or_eff);
+    this->Branch ("fake_el_iso_after_or_eff", &fake_el_iso_after_or_eff);
+    this->Branch ("n_fake_den_mu", &n_fake_den_mu);
+    this->Branch ("n_fake_den_mu_pass_or", &n_fake_den_mu_pass_or);
+    this->Branch ("n_fake_num_mu", &n_fake_num_mu);
+    this->Branch ("fake_mu_or_eff", &fake_mu_or_eff);
+    this->Branch ("fake_mu_iso_plus_or_eff", &fake_mu_iso_plus_or_eff);
+    this->Branch ("fake_mu_iso_after_or_eff", &fake_mu_iso_after_or_eff);
+    this->Branch ("n_real_den_el", &n_real_den_el);
+    this->Branch ("n_real_den_el_pass_or", &n_real_den_el_pass_or);
+    this->Branch ("n_real_num_el", &n_real_num_el);
+    this->Branch ("real_el_or_eff", &real_el_or_eff);
+    this->Branch ("real_el_iso_plus_or_eff", &real_el_iso_plus_or_eff);
+    this->Branch ("real_el_iso_after_or_eff", &real_el_iso_after_or_eff);
+    this->Branch ("n_real_den_mu", &n_real_den_mu);
+    this->Branch ("n_real_den_mu_pass_or", &n_real_den_mu_pass_or);
+    this->Branch ("n_real_num_mu", &n_real_num_mu);
+    this->Branch ("real_mu_or_eff", &real_mu_or_eff);
+    this->Branch ("real_mu_iso_plus_or_eff", &real_mu_iso_plus_or_eff);
+    this->Branch ("real_mu_iso_after_or_eff", &real_mu_iso_after_or_eff);
   }
 
   //////////////////////////////////////////////////////////////////////////////
-  // Print variables 
+  // Print variables
   void PrintConf() const {
     cout << "Configuration Options:\n";
     cout << ">> config_id = " << config_id << "\n";
@@ -164,18 +195,37 @@ public:
   }
   void PrintResults() const {
     cout << "Results:\n";
-    cout << "\t n_fake_den_leps = " << n_fake_den_leps << '\n';
-    cout << "\t n_real_den_leps = " << n_real_den_leps << '\n';
-    cout << "\t n_fake_den_leps_pass_or = " << n_fake_den_leps_pass_or << '\n';
-    cout << "\t n_real_den_leps_pass_or = " << n_real_den_leps_pass_or << '\n';
-    cout << "\t n_fake_num_leps = " << n_fake_num_leps << '\n';
-    cout << "\t n_real_num_leps = " << n_real_num_leps << '\n';
-    cout << "\t fake_or_eff = " << fake_or_eff << '\n';
-    cout << "\t real_or_eff = " << real_or_eff << '\n';
-    cout << "\t fake_iso_plus_or_eff = " << fake_iso_plus_or_eff << '\n';
-    cout << "\t real_iso_plus_or_eff = " << real_iso_plus_or_eff << '\n';
-    cout << "\t fake_iso_after_or_eff = " << fake_iso_after_or_eff << '\n';
-    cout << "\t real_iso_after_or_eff = " << real_iso_after_or_eff << '\n';
+    cout << "\t Fake Electron:\n";
+    cout << "\t\t n_fake_den_el = " << n_fake_den_el << '\n';
+    cout << "\t\t n_fake_den_el_pass_or = " << n_fake_den_el_pass_or << '\n';
+    cout << "\t\t n_fake_num_el = " << n_fake_num_el << '\n';
+    cout << "\t\t fake_el_or_eff = " << fake_el_or_eff << '\n';
+    cout << "\t\t fake_el_iso_plus_or_eff = " << fake_el_iso_plus_or_eff << '\n';
+    cout << "\t\t fake_el_iso_after_or_eff = " << fake_el_iso_after_or_eff << '\n';
+
+    cout << "\t Fake Muon:\n";
+    cout << "\t\t n_fake_den_mu = " << n_fake_den_mu << '\n';
+    cout << "\t\t n_fake_den_mu_pass_or = " << n_fake_den_mu_pass_or << '\n';
+    cout << "\t\t n_fake_num_mu = " << n_fake_num_mu << '\n';
+    cout << "\t\t fake_mu_or_eff = " << fake_mu_or_eff << '\n';
+    cout << "\t\t fake_mu_iso_plus_or_eff = " << fake_mu_iso_plus_or_eff << '\n';
+    cout << "\t\t fake_mu_iso_after_or_eff = " << fake_mu_iso_after_or_eff << '\n';
+
+    cout << "\t Real Electron:\n";
+    cout << "\t\t n_real_den_el = " << n_real_den_el << '\n';
+    cout << "\t\t n_real_den_el_pass_or = " << n_real_den_el_pass_or << '\n';
+    cout << "\t\t n_real_num_el = " << n_real_num_el << '\n';
+    cout << "\t\t real_el_or_eff = " << real_el_or_eff << '\n';
+    cout << "\t\t real_el_iso_plus_or_eff = " << real_el_iso_plus_or_eff << '\n';
+    cout << "\t\t real_el_iso_after_or_eff = " << real_el_iso_after_or_eff << '\n';
+
+    cout << "\t Real Muon:\n";
+    cout << "\t\t n_real_den_mu = " << n_real_den_mu << '\n';
+    cout << "\t\t n_real_den_mu_pass_or = " << n_real_den_mu_pass_or << '\n';
+    cout << "\t\t n_real_num_mu = " << n_real_num_mu << '\n';
+    cout << "\t\t real_mu_or_eff = " << real_mu_or_eff << '\n';
+    cout << "\t\t real_mu_iso_plus_or_eff = " << real_mu_iso_plus_or_eff << '\n';
+    cout << "\t\t real_mu_iso_after_or_eff = " << real_mu_iso_after_or_eff << '\n';
   }
   void Print() const {
     cout << "===============================================================\n";
@@ -193,33 +243,41 @@ public:
   // Destructor - delete vectors
   ~EffTree() {
   }
-  
+
   //////////////////////////////////////////////////////////////////////////////
   // Useful functions
   void calculateResults() {
-    if (n_fake_den_leps == 0) {
-       cout << "WARNING :: No leptons passed denominator requirements\n";
-       return;
+    calculateEff("fake electrons",
+                  n_fake_den_el, n_fake_den_el_pass_or, n_fake_num_el,
+                  fake_el_or_eff, fake_el_iso_plus_or_eff, fake_el_iso_after_or_eff);
+    calculateEff("fake muons",
+                  n_fake_den_mu, n_fake_den_mu_pass_or, n_fake_num_mu,
+                  fake_mu_or_eff, fake_mu_iso_plus_or_eff, fake_mu_iso_after_or_eff);
+    calculateEff("real electrons",
+                  n_real_den_el, n_real_den_el_pass_or, n_real_num_el,
+                  real_el_or_eff, real_el_iso_plus_or_eff, real_el_iso_after_or_eff);
+    calculateEff("real muons",
+                  n_real_den_mu, n_real_den_mu_pass_or, n_real_num_mu,
+                  real_mu_or_eff, real_mu_iso_plus_or_eff, real_mu_iso_after_or_eff);
+  }
+  void calculateEff(string lepType,
+                    const float& n_den,
+                    const float& n_den_pass_or,
+                    const float& n_num,
+                    float& or_eff,
+                    float& iso_plus_or_eff,
+                    float& iso_after_or_eff) {
+    if (n_den > 0) {
+      or_eff = n_den_pass_or / n_den;
+      iso_plus_or_eff = n_num / n_den;
+    } else {
+       cout << "WARNING :: No " << lepType << " passed denominator requirements\n";
     }
-    fake_or_eff = n_fake_den_leps_pass_or / n_fake_den_leps;
-    fake_iso_plus_or_eff = n_fake_num_leps / n_fake_den_leps;
-    if (n_fake_den_leps_pass_or == 0) {
-       cout << "WARNING :: No leptons passed overlap removal\n";
-       return;
+    if (n_den_pass_or > 0) {
+      iso_after_or_eff = n_num / n_den_pass_or;
+    else {
+       cout << "WARNING :: No " << lepType << " passed overlap removal\n";
     }
-    fake_iso_after_or_eff = n_fake_num_leps / n_fake_den_leps_pass_or;
-    
-    if (n_real_den_leps == 0) {
-       cout << "WARNING :: No leptons passed denominator requirements\n";
-       return;
-    }
-    real_or_eff = n_real_den_leps_pass_or / n_real_den_leps;
-    real_iso_plus_or_eff = n_real_num_leps / n_real_den_leps;
-    if (n_real_den_leps_pass_or == 0) {
-       cout << "WARNING :: No leptons passed overlap removal\n";
-       return;
-    }
-    real_iso_after_or_eff = n_real_num_leps / n_real_den_leps_pass_or;
   }
 
 };

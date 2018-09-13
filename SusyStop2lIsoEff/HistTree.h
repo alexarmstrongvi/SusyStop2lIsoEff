@@ -20,11 +20,19 @@ public:
   int nDenEle = -1;
   int nDenMu = -1;
   int nDenLep = -1;
-  int nDenTruthLep = -1;
+  int nDenRealEl = -1;
+  int nDenFakeEl = -1;
+  int nDenRealMu = -1;
+  int nDenFakeMu = -1;
+
   int nDenPassORJets = -1;
   int nDenPassOREle = -1;
   int nDenPassORMu = -1;
   int nDenPassORLep = -1;
+  int nDenPassORRealEl = -1;
+  int nDenPassORFakeEl = -1;
+  int nDenPassORRealMu = -1;
+  int nDenPassORFakeMu = -1;
 
   /// Jet 4-momentum variables
   vector<float> *JetEta = nullptr;

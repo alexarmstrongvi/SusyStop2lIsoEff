@@ -60,7 +60,7 @@ class SusyStop2lIsoEff : public SusyNtAna
         MuonVector getSignalMuons(const MuonVector& baseMuons, const EffTree& conf);
 
         int get_lepton_truth_class(const Susy::Lepton* lepton);
-        int n_prompt_leptons(const LeptonVector& leptons);
+        int n_real_leptons(const LeptonVector& leptons);
         int n_fake_leptons(const LeptonVector& leptons);
     private :
         int m_dbg;
