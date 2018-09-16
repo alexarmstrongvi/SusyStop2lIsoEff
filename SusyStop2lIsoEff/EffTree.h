@@ -1,11 +1,15 @@
 #pragma once
-#include <TTree.h>
-#include <vector>
 #include <iostream>
+#include <string>
+#include <vector>
 #include "math.h"
+#include <TTree.h>
+#include <TEfficiency.h>
+#include <TH1F.h>
 
 using std::vector;
 using std::cout;
+using std::string;
 
 enum EleIDWP {tightLLH, mediumLLH, looseLLHBLayer, looseLLH, N_EL_IDWPs};
 enum MuoIDWP {tight, medium, loose, veryLoose, N_MU_IDWPs};
@@ -17,12 +21,12 @@ vector<int> el_ID_WP_ops = {looseLLHBLayer};
 vector<float> el_pt_min_ops = {10.0};
 vector<int> mu_ID_WP_ops =  {medium};
 vector<float> mu_pt_min_ops = {10.0};
-vector<int> el_iso_WP_ops = {isoLooseTrackOnly};
-vector<int> mu_iso_WP_ops = {isoLooseTrackOnly};
+vector<int> el_iso_WP_ops = {isoGradientLoose};
+vector<int> mu_iso_WP_ops = {isoGradientLoose};
 vector<int> truth_matching_ops = {false};
-vector<bool> j_e_bjet_or_ops = {false};
+vector<bool> j_e_bjet_or_ops = {true};
 vector<bool> e_j_sliding_cone_or_ops= {false};
-vector<bool> j_m_bjet_or_ops = {false};
+vector<bool> j_m_bjet_or_ops = {true};
 vector<bool> m_j_sliding_cone_or_ops = {true};
 
 class EffTree : public TTree
@@ -64,6 +68,12 @@ public:
   float fake_el_or_eff = -1;  ///< fake efficency of overlap removal
   float fake_el_iso_plus_or_eff = -1;  ///< fake efficency of isolation and overlap removal combined
   float fake_el_iso_after_or_eff = -1;  ///< fake efficency of isolation after overlap removal
+  float fake_el_or_eff_unc_low = 0;  ///< fake efficency uncertainty of overlap removal
+  float fake_el_or_eff_unc_up = 0;  ///< fake efficency uncertainty of overlap removal
+  float fake_el_iso_plus_or_eff_unc_low = 0;  ///< fake efficency uncertainty of isolation and overlap removal combined
+  float fake_el_iso_plus_or_eff_unc_up = 0;  ///< fake efficency uncertainty of isolation and overlap removal combined
+  float fake_el_iso_after_or_eff_unc_low = 0;  ///< fake efficency uncertainty of isolation after overlap removal
+  float fake_el_iso_after_or_eff_unc_up = 0;  ///< fake efficency uncertainty of isolation after overlap removal
 
   float n_fake_den_mu = 0;
   float n_fake_den_mu_pass_or = 0;
@@ -71,6 +81,12 @@ public:
   float fake_mu_or_eff = -1;  ///< fake efficency of overlap removal
   float fake_mu_iso_plus_or_eff = -1;  ///< fake efficency of isolation and overlap removal combined
   float fake_mu_iso_after_or_eff = -1;  ///< fake efficency of isolation after overlap removal
+  float fake_mu_or_eff_unc_low = 0;  ///< fake efficency uncertainty of overlap removal
+  float fake_mu_or_eff_unc_up = 0;  ///< fake efficency uncertainty of overlap removal
+  float fake_mu_iso_plus_or_eff_unc_low = 0;  ///< fake efficency uncertainty of isolation and overlap removal combined
+  float fake_mu_iso_plus_or_eff_unc_up = 0;  ///< fake efficency uncertainty of isolation and overlap removal combined
+  float fake_mu_iso_after_or_eff_unc_low = 0;  ///< fake efficency uncertainty of isolation after overlap removal
+  float fake_mu_iso_after_or_eff_unc_up = 0;  ///< fake efficency uncertainty of isolation after overlap removal
 
   float n_real_den_el = 0;
   float n_real_den_el_pass_or = 0;
@@ -78,6 +94,12 @@ public:
   float real_el_or_eff = -1;  ///< real efficency of overlap removal
   float real_el_iso_plus_or_eff = -1;  ///< real efficency of isolation and overlap removal combined
   float real_el_iso_after_or_eff = -1;  ///< real efficency of isolation after overlap removal
+  float real_el_or_eff_unc_low = 0;  ///< real efficency uncertainty of overlap removal
+  float real_el_or_eff_unc_up = 0;  ///< real efficency uncertainty of overlap removal
+  float real_el_iso_plus_or_eff_unc_low = 0;  ///< real efficency uncertainty of isolation and overlap removal combined
+  float real_el_iso_plus_or_eff_unc_up = 0;  ///< real efficency uncertainty of isolation and overlap removal combined
+  float real_el_iso_after_or_eff_unc_low = 0;  ///< real efficency uncertainty of isolation after overlap removal
+  float real_el_iso_after_or_eff_unc_up = 0;  ///< real efficency uncertainty of isolation after overlap removal
 
   float n_real_den_mu = 0;
   float n_real_den_mu_pass_or = 0;
@@ -85,6 +107,12 @@ public:
   float real_mu_or_eff = -1;  ///< real efficency of overlap removal
   float real_mu_iso_plus_or_eff = -1;  ///< real efficency of isolation and overlap removal combined
   float real_mu_iso_after_or_eff = -1;  ///< real efficency of isolation after overlap removal
+  float real_mu_or_eff_unc_low = 0;  ///< real efficency uncertainty of overlap removal
+  float real_mu_or_eff_unc_up = 0;  ///< real efficency uncertainty of overlap removal
+  float real_mu_iso_plus_or_eff_unc_low = 0;  ///< real efficency uncertainty of isolation and overlap removal combined
+  float real_mu_iso_plus_or_eff_unc_up = 0;  ///< real efficency uncertainty of isolation and overlap removal combined
+  float real_mu_iso_after_or_eff_unc_low = 0;  ///< real efficency uncertainty of isolation after overlap removal
+  float real_mu_iso_after_or_eff_unc_up = 0;  ///< real efficency uncertainty of isolation after overlap removal
 
   EffTree& operator=(const EffTree& rhs) {
     this->config_id = rhs.config_id;
@@ -106,24 +134,48 @@ public:
     this->fake_el_or_eff = rhs.fake_el_or_eff;
     this->fake_el_iso_plus_or_eff = rhs.fake_el_iso_plus_or_eff;
     this->fake_el_iso_after_or_eff = rhs.fake_el_iso_after_or_eff;
+    this->fake_el_or_eff_unc_low = rhs.fake_el_or_eff_unc_low;
+    this->fake_el_or_eff_unc_up = rhs.fake_el_or_eff_unc_up;
+    this->fake_el_iso_plus_or_eff_unc_low = rhs.fake_el_iso_plus_or_eff_unc_low;
+    this->fake_el_iso_plus_or_eff_unc_up = rhs.fake_el_iso_plus_or_eff_unc_up;
+    this->fake_el_iso_after_or_eff_unc_low = rhs.fake_el_iso_after_or_eff_unc_low;
+    this->fake_el_iso_after_or_eff_unc_up = rhs.fake_el_iso_after_or_eff_unc_up;
     this->n_fake_den_mu = rhs.n_fake_den_mu;
     this->n_fake_den_mu_pass_or = rhs.n_fake_den_mu_pass_or;
     this->n_fake_num_mu = rhs.n_fake_num_mu;
     this->fake_mu_or_eff = rhs.fake_mu_or_eff;
     this->fake_mu_iso_plus_or_eff = rhs.fake_mu_iso_plus_or_eff;
     this->fake_mu_iso_after_or_eff = rhs.fake_mu_iso_after_or_eff;
+    this->fake_mu_or_eff_unc_low = rhs.fake_mu_or_eff_unc_low;
+    this->fake_mu_or_eff_unc_up = rhs.fake_mu_or_eff_unc_up;
+    this->fake_mu_iso_plus_or_eff_unc_low = rhs.fake_mu_iso_plus_or_eff_unc_low;
+    this->fake_mu_iso_plus_or_eff_unc_up = rhs.fake_mu_iso_plus_or_eff_unc_up;
+    this->fake_mu_iso_after_or_eff_unc_low = rhs.fake_mu_iso_after_or_eff_unc_low;
+    this->fake_mu_iso_after_or_eff_unc_up = rhs.fake_mu_iso_after_or_eff_unc_up;
     this->n_real_den_el = rhs.n_real_den_el;
     this->n_real_den_el_pass_or = rhs.n_real_den_el_pass_or;
     this->n_real_num_el = rhs.n_real_num_el;
     this->real_el_or_eff = rhs.real_el_or_eff;
     this->real_el_iso_plus_or_eff = rhs.real_el_iso_plus_or_eff;
     this->real_el_iso_after_or_eff = rhs.real_el_iso_after_or_eff;
+    this->real_el_or_eff_unc_low = rhs.real_el_or_eff_unc_low;
+    this->real_el_or_eff_unc_up = rhs.real_el_or_eff_unc_up;
+    this->real_el_iso_plus_or_eff_unc_low = rhs.real_el_iso_plus_or_eff_unc_low;
+    this->real_el_iso_plus_or_eff_unc_up = rhs.real_el_iso_plus_or_eff_unc_up;
+    this->real_el_iso_after_or_eff_unc_low = rhs.real_el_iso_after_or_eff_unc_low;
+    this->real_el_iso_after_or_eff_unc_up = rhs.real_el_iso_after_or_eff_unc_up;
     this->n_real_den_mu = rhs.n_real_den_mu;
     this->n_real_den_mu_pass_or = rhs.n_real_den_mu_pass_or;
     this->n_real_num_mu = rhs.n_real_num_mu;
     this->real_mu_or_eff = rhs.real_mu_or_eff;
     this->real_mu_iso_plus_or_eff = rhs.real_mu_iso_plus_or_eff;
     this->real_mu_iso_after_or_eff = rhs.real_mu_iso_after_or_eff;
+    this->real_mu_or_eff_unc_low = rhs.real_mu_or_eff_unc_low;
+    this->real_mu_or_eff_unc_up = rhs.real_mu_or_eff_unc_up;
+    this->real_mu_iso_plus_or_eff_unc_low = rhs.real_mu_iso_plus_or_eff_unc_low;
+    this->real_mu_iso_plus_or_eff_unc_up = rhs.real_mu_iso_plus_or_eff_unc_up;
+    this->real_mu_iso_after_or_eff_unc_low = rhs.real_mu_iso_after_or_eff_unc_low;
+    this->real_mu_iso_after_or_eff_unc_up = rhs.real_mu_iso_after_or_eff_unc_up;
     return *this;
   }
   //////////////////////////////////////////////////////////////////////////////
@@ -148,24 +200,48 @@ public:
     this->Branch ("fake_el_or_eff", &fake_el_or_eff);
     this->Branch ("fake_el_iso_plus_or_eff", &fake_el_iso_plus_or_eff);
     this->Branch ("fake_el_iso_after_or_eff", &fake_el_iso_after_or_eff);
+    this->Branch ("fake_el_or_eff_unc_low", &fake_el_or_eff_unc_low);
+    this->Branch ("fake_el_or_eff_unc_up", &fake_el_or_eff_unc_up);
+    this->Branch ("fake_el_iso_plus_or_eff_unc_low", &fake_el_iso_plus_or_eff_unc_low);
+    this->Branch ("fake_el_iso_plus_or_eff_unc_up", &fake_el_iso_plus_or_eff_unc_up);
+    this->Branch ("fake_el_iso_after_or_eff_unc_low", &fake_el_iso_after_or_eff_unc_low);
+    this->Branch ("fake_el_iso_after_or_eff_unc_up", &fake_el_iso_after_or_eff_unc_up);
     this->Branch ("n_fake_den_mu", &n_fake_den_mu);
     this->Branch ("n_fake_den_mu_pass_or", &n_fake_den_mu_pass_or);
     this->Branch ("n_fake_num_mu", &n_fake_num_mu);
     this->Branch ("fake_mu_or_eff", &fake_mu_or_eff);
     this->Branch ("fake_mu_iso_plus_or_eff", &fake_mu_iso_plus_or_eff);
     this->Branch ("fake_mu_iso_after_or_eff", &fake_mu_iso_after_or_eff);
+    this->Branch ("fake_mu_or_eff_unc_low", &fake_mu_or_eff_unc_low);
+    this->Branch ("fake_mu_or_eff_unc_up", &fake_mu_or_eff_unc_up);
+    this->Branch ("fake_mu_iso_plus_or_eff_unc_low", &fake_mu_iso_plus_or_eff_unc_low);
+    this->Branch ("fake_mu_iso_plus_or_eff_unc_up", &fake_mu_iso_plus_or_eff_unc_up);
+    this->Branch ("fake_mu_iso_after_or_eff_unc_low", &fake_mu_iso_after_or_eff_unc_low);
+    this->Branch ("fake_mu_iso_after_or_eff_unc_up", &fake_mu_iso_after_or_eff_unc_up);
     this->Branch ("n_real_den_el", &n_real_den_el);
     this->Branch ("n_real_den_el_pass_or", &n_real_den_el_pass_or);
     this->Branch ("n_real_num_el", &n_real_num_el);
     this->Branch ("real_el_or_eff", &real_el_or_eff);
     this->Branch ("real_el_iso_plus_or_eff", &real_el_iso_plus_or_eff);
     this->Branch ("real_el_iso_after_or_eff", &real_el_iso_after_or_eff);
+    this->Branch ("real_el_or_eff_unc_low", &real_el_or_eff_unc_low);
+    this->Branch ("real_el_or_eff_unc_up", &real_el_or_eff_unc_up);
+    this->Branch ("real_el_iso_plus_or_eff_unc_low", &real_el_iso_plus_or_eff_unc_low);
+    this->Branch ("real_el_iso_plus_or_eff_unc_up", &real_el_iso_plus_or_eff_unc_up);
+    this->Branch ("real_el_iso_after_or_eff_unc_low", &real_el_iso_after_or_eff_unc_low);
+    this->Branch ("real_el_iso_after_or_eff_unc_up", &real_el_iso_after_or_eff_unc_up);
     this->Branch ("n_real_den_mu", &n_real_den_mu);
     this->Branch ("n_real_den_mu_pass_or", &n_real_den_mu_pass_or);
     this->Branch ("n_real_num_mu", &n_real_num_mu);
     this->Branch ("real_mu_or_eff", &real_mu_or_eff);
     this->Branch ("real_mu_iso_plus_or_eff", &real_mu_iso_plus_or_eff);
     this->Branch ("real_mu_iso_after_or_eff", &real_mu_iso_after_or_eff);
+    this->Branch ("real_mu_or_eff_unc_low", &real_mu_or_eff_unc_low);
+    this->Branch ("real_mu_or_eff_unc_up", &real_mu_or_eff_unc_up);
+    this->Branch ("real_mu_iso_plus_or_eff_unc_low", &real_mu_iso_plus_or_eff_unc_low);
+    this->Branch ("real_mu_iso_plus_or_eff_unc_up", &real_mu_iso_plus_or_eff_unc_up);
+    this->Branch ("real_mu_iso_after_or_eff_unc_low", &real_mu_iso_after_or_eff_unc_low);
+    this->Branch ("real_mu_iso_after_or_eff_unc_up", &real_mu_iso_after_or_eff_unc_up);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -202,6 +278,9 @@ public:
     cout << "\t\t fake_el_or_eff = " << fake_el_or_eff << '\n';
     cout << "\t\t fake_el_iso_plus_or_eff = " << fake_el_iso_plus_or_eff << '\n';
     cout << "\t\t fake_el_iso_after_or_eff = " << fake_el_iso_after_or_eff << '\n';
+    cout << "\t\t fake_el_or_eff = " << fake_el_or_eff << " +/- " << fake_el_or_eff_unc_up << "," << fake_el_or_eff_unc_low << '\n';
+    cout << "\t\t fake_el_iso_plus_or_eff = " << fake_el_iso_plus_or_eff << " +/- " << fake_el_iso_plus_or_eff_unc_up << "," << fake_el_iso_plus_or_eff_unc_low << '\n';
+    cout << "\t\t fake_el_iso_after_or_eff = " << fake_el_iso_after_or_eff << " +/- " << fake_el_iso_after_or_eff_unc_up << "," << fake_el_iso_after_or_eff_unc_low << '\n';
 
     cout << "\t Fake Muon:\n";
     cout << "\t\t n_fake_den_mu = " << n_fake_den_mu << '\n';
@@ -210,6 +289,9 @@ public:
     cout << "\t\t fake_mu_or_eff = " << fake_mu_or_eff << '\n';
     cout << "\t\t fake_mu_iso_plus_or_eff = " << fake_mu_iso_plus_or_eff << '\n';
     cout << "\t\t fake_mu_iso_after_or_eff = " << fake_mu_iso_after_or_eff << '\n';
+    cout << "\t\t fake_mu_or_eff = " << fake_mu_or_eff << " +/- " << fake_mu_or_eff_unc_up << "," << fake_mu_or_eff_unc_low << '\n';
+    cout << "\t\t fake_mu_iso_plus_or_eff = " << fake_mu_iso_plus_or_eff << " +/- " << fake_mu_iso_plus_or_eff_unc_up << "," << fake_mu_iso_plus_or_eff_unc_low << '\n';
+    cout << "\t\t fake_mu_iso_after_or_eff = " << fake_mu_iso_after_or_eff << " +/- " << fake_mu_iso_after_or_eff_unc_up << "," << fake_mu_iso_after_or_eff_unc_low << '\n';
 
     cout << "\t Real Electron:\n";
     cout << "\t\t n_real_den_el = " << n_real_den_el << '\n';
@@ -218,6 +300,9 @@ public:
     cout << "\t\t real_el_or_eff = " << real_el_or_eff << '\n';
     cout << "\t\t real_el_iso_plus_or_eff = " << real_el_iso_plus_or_eff << '\n';
     cout << "\t\t real_el_iso_after_or_eff = " << real_el_iso_after_or_eff << '\n';
+    cout << "\t\t real_el_or_eff = " << real_el_or_eff << " +/- " << real_el_or_eff_unc_up << "," << real_el_or_eff_unc_low << '\n';
+    cout << "\t\t real_el_iso_plus_or_eff = " << real_el_iso_plus_or_eff << " +/- " << real_el_iso_plus_or_eff_unc_up << "," << real_el_iso_plus_or_eff_unc_low << '\n';
+    cout << "\t\t real_el_iso_after_or_eff = " << real_el_iso_after_or_eff << " +/- " << real_el_iso_after_or_eff_unc_up << "," << real_el_iso_after_or_eff_unc_low << '\n';
 
     cout << "\t Real Muon:\n";
     cout << "\t\t n_real_den_mu = " << n_real_den_mu << '\n';
@@ -226,6 +311,9 @@ public:
     cout << "\t\t real_mu_or_eff = " << real_mu_or_eff << '\n';
     cout << "\t\t real_mu_iso_plus_or_eff = " << real_mu_iso_plus_or_eff << '\n';
     cout << "\t\t real_mu_iso_after_or_eff = " << real_mu_iso_after_or_eff << '\n';
+    cout << "\t\t real_mu_or_eff = " << real_mu_or_eff << " +/- " << real_mu_or_eff_unc_up << "," << real_mu_or_eff_unc_low << '\n';
+    cout << "\t\t real_mu_iso_plus_or_eff = " << real_mu_iso_plus_or_eff << " +/- " << real_mu_iso_plus_or_eff_unc_up << "," << real_mu_iso_plus_or_eff_unc_low << '\n';
+    cout << "\t\t real_mu_iso_after_or_eff = " << real_mu_iso_after_or_eff << " +/- " << real_mu_iso_after_or_eff_unc_up << "," << real_mu_iso_after_or_eff_unc_low << '\n';
   }
   void Print() const {
     cout << "===============================================================\n";
@@ -247,18 +335,42 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   // Useful functions
   void calculateResults() {
-    calculateEff("fake electrons",
-                  n_fake_den_el, n_fake_den_el_pass_or, n_fake_num_el,
-                  fake_el_or_eff, fake_el_iso_plus_or_eff, fake_el_iso_after_or_eff);
-    calculateEff("fake muons",
-                  n_fake_den_mu, n_fake_den_mu_pass_or, n_fake_num_mu,
-                  fake_mu_or_eff, fake_mu_iso_plus_or_eff, fake_mu_iso_after_or_eff);
-    calculateEff("real electrons",
-                  n_real_den_el, n_real_den_el_pass_or, n_real_num_el,
-                  real_el_or_eff, real_el_iso_plus_or_eff, real_el_iso_after_or_eff);
-    calculateEff("real muons",
-                  n_real_den_mu, n_real_den_mu_pass_or, n_real_num_mu,
-                  real_mu_or_eff, real_mu_iso_plus_or_eff, real_mu_iso_after_or_eff);
+    calculateEffAndUnc(n_fake_den_el_pass_or, n_fake_den_el, fake_el_or_eff, fake_el_or_eff_unc_up, fake_el_or_eff_unc_low);
+    calculateEffAndUnc(n_fake_num_el, n_fake_den_el, fake_el_iso_plus_or_eff, fake_el_iso_plus_or_eff_unc_up, fake_el_iso_plus_or_eff_unc_low);
+    calculateEffAndUnc(n_fake_num_el, n_fake_den_el_pass_or, fake_el_iso_after_or_eff, fake_el_iso_after_or_eff_unc_up, fake_el_iso_after_or_eff_unc_low);
+    
+    calculateEffAndUnc(n_fake_den_mu_pass_or, n_fake_den_mu, fake_mu_or_eff, fake_mu_or_eff_unc_up, fake_mu_or_eff_unc_low);
+    calculateEffAndUnc(n_fake_num_mu, n_fake_den_mu, fake_mu_iso_plus_or_eff, fake_mu_iso_plus_or_eff_unc_up, fake_mu_iso_plus_or_eff_unc_low);
+    calculateEffAndUnc(n_fake_num_mu, n_fake_den_mu_pass_or, fake_mu_iso_after_or_eff, fake_mu_iso_after_or_eff_unc_up, fake_mu_iso_after_or_eff_unc_low);
+    
+    calculateEffAndUnc(n_real_den_el_pass_or, n_real_den_el, real_el_or_eff, real_el_or_eff_unc_up, real_el_or_eff_unc_low);
+    calculateEffAndUnc(n_real_num_el, n_real_den_el, real_el_iso_plus_or_eff, real_el_iso_plus_or_eff_unc_up, real_el_iso_plus_or_eff_unc_low);
+    calculateEffAndUnc(n_real_num_el, n_real_den_el_pass_or, real_el_iso_after_or_eff, real_el_iso_after_or_eff_unc_up, real_el_iso_after_or_eff_unc_low);
+    
+    calculateEffAndUnc(n_real_den_mu_pass_or, n_real_den_mu, real_mu_or_eff, real_mu_or_eff_unc_up, real_mu_or_eff_unc_low);
+    calculateEffAndUnc(n_real_num_mu, n_real_den_mu, real_mu_iso_plus_or_eff, real_mu_iso_plus_or_eff_unc_up, real_mu_iso_plus_or_eff_unc_low);
+    calculateEffAndUnc(n_real_num_mu, n_real_den_mu_pass_or, real_mu_iso_after_or_eff, real_mu_iso_after_or_eff_unc_up, real_mu_iso_after_or_eff_unc_low);
+
+    //calculateEff("fake electrons",
+    //              n_fake_den_el, n_fake_den_el_pass_or, n_fake_num_el,
+    //              fake_el_or_eff, fake_el_iso_plus_or_eff, fake_el_iso_after_or_eff,
+    //              fake_el_or_eff_unc_up, fake_el_iso_plus_or_eff_unc_up, fake_el_iso_after_or_eff_unc_up,
+    //              fake_el_or_eff_unc_low, fake_el_iso_plus_or_eff_unc_low, fake_el_iso_after_or_eff_unc_low);
+    //calculateEff("fake muons",
+    //              n_fake_den_mu, n_fake_den_mu_pass_or, n_fake_num_mu,
+    //              fake_mu_or_eff, fake_mu_iso_plus_or_eff, fake_mu_iso_after_or_eff,
+    //              fake_mu_or_eff_unc_up, fake_mu_iso_plus_or_eff_unc_up, fake_mu_iso_after_or_eff_unc_up,
+    //              fake_mu_or_eff_unc_low, fake_mu_iso_plus_or_eff_unc_low, fake_mu_iso_after_or_eff_unc_low);
+    //calculateEff("real electrons",
+    //              n_real_den_el, n_real_den_el_pass_or, n_real_num_el,
+    //              real_el_or_eff, real_el_iso_plus_or_eff, real_el_iso_after_or_eff,
+    //              real_el_or_eff_unc_up, real_el_iso_plus_or_eff_unc_up, real_el_iso_after_or_eff_unc_up,
+    //              real_el_or_eff_unc_low, real_el_iso_plus_or_eff_unc_low, real_el_iso_after_or_eff_unc_low);
+    //calculateEff("real muons",
+    //              n_real_den_mu, n_real_den_mu_pass_or, n_real_num_mu,
+    //              real_mu_or_eff, real_mu_iso_plus_or_eff, real_mu_iso_after_or_eff,
+    //              real_mu_or_eff_unc_up, real_mu_iso_plus_or_eff_unc_up, real_mu_iso_after_or_eff_unc_up,
+    //              real_mu_or_eff_unc_low, real_mu_iso_plus_or_eff_unc_low, real_mu_iso_after_or_eff_unc_low);
   }
   void calculateEff(string lepType,
                     const float& n_den,
@@ -266,18 +378,40 @@ public:
                     const float& n_num,
                     float& or_eff,
                     float& iso_plus_or_eff,
-                    float& iso_after_or_eff) {
+                    float& iso_after_or_eff,
+                    float& or_eff_unc_up,
+                    float& iso_plus_or_eff_unc_up,
+                    float& iso_after_or_eff_unc_up,
+                    float& or_eff_unc_low,
+                    float& iso_plus_or_eff_unc_low,
+                    float& iso_after_or_eff_unc_low) {
+      
     if (n_den > 0) {
       or_eff = n_den_pass_or / n_den;
       iso_plus_or_eff = n_num / n_den;
     } else {
        cout << "WARNING :: No " << lepType << " passed denominator requirements\n";
+       or_eff = 1;
+       iso_plus_or_eff = 1;
     }
     if (n_den_pass_or > 0) {
       iso_after_or_eff = n_num / n_den_pass_or;
-    else {
+    } else {
        cout << "WARNING :: No " << lepType << " passed overlap removal\n";
+       iso_after_or_eff = 1;
     }
+  }
+  void calculateEffAndUnc(uint n_num, uint n_den, float& eff, float& eff_unc_up, float& eff_unc_low) {
+    TH1F h_num("h_num","",1,0,1);
+    h_num.SetBinContent(1, n_num);
+    TH1F h_den("h_den","",1,0,1);
+    h_den.SetBinContent(1, n_den);
+    
+    TEfficiency h_eff(h_num, h_den);
+    h_eff.SetStatisticOption(TEfficiency::kFAC);
+    eff = h_eff.GetEfficiency(1);
+    eff_unc_up = h_eff.GetEfficiencyErrorUp(1);
+    eff_unc_low = h_eff.GetEfficiencyErrorLow(1);
   }
 
 };

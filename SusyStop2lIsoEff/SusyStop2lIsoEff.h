@@ -59,9 +59,30 @@ class SusyStop2lIsoEff : public SusyNtAna
         MuonVector getBaselineMuons(const MuonVector& preMuons, const EffTree& conf);
         MuonVector getSignalMuons(const MuonVector& baseMuons, const EffTree& conf);
 
+        int n_btag_jets(const JetVector& jets);
         int get_lepton_truth_class(const Susy::Lepton* lepton);
-        int n_real_leptons(const LeptonVector& leptons);
-        int n_fake_leptons(const LeptonVector& leptons);
+        template<typename T>
+        inline int n_real_leptons(const std::vector<T>& leptons) {
+            uint n_real_leptons = 0;
+            for (auto lep : leptons) {
+                int truth_class = get_lepton_truth_class(lep);
+                bool prompt_el = (truth_class == 1);
+                bool prompt_mu = (truth_class == 2);
+                if (prompt_el || prompt_mu) n_real_leptons++;
+            }
+            return n_real_leptons;
+        }
+        template<typename T>
+        inline int n_fake_leptons(const std::vector<T>& leptons) {
+            uint n_fake_leptons = 0;
+            for (auto lep : leptons) {
+                int truth_class = get_lepton_truth_class(lep);
+                bool prompt_el = (truth_class == 1);
+                bool prompt_mu = (truth_class == 2);
+                if (!prompt_el && !prompt_mu) n_fake_leptons++;
+            }
+            return n_fake_leptons;
+        }
     private :
         int m_dbg;
         TChain* m_input_chain; // the TChain object we are processing

@@ -17,6 +17,8 @@ public:
   float eventweight = 1; ///< MC Event Weight
 
   int nDenJets = -1;
+  int nDenLJets = -1;
+  int nDenBJets = -1;
   int nDenEle = -1;
   int nDenMu = -1;
   int nDenLep = -1;
@@ -26,6 +28,8 @@ public:
   int nDenFakeMu = -1;
 
   int nDenPassORJets = -1;
+  int nDenPassORLJets = -1;
+  int nDenPassORBJets = -1;
   int nDenPassOREle = -1;
   int nDenPassORMu = -1;
   int nDenPassORLep = -1;
@@ -34,6 +38,9 @@ public:
   int nDenPassORRealMu = -1;
   int nDenPassORFakeMu = -1;
 
+  int nNumJets = -1;
+  int nNumLJets = -1;
+  int nNumBJets = -1;
   /// Jet 4-momentum variables
   vector<float> *JetEta = nullptr;
   vector<float> *JetPhi = nullptr;
@@ -74,14 +81,28 @@ public:
     this->eventNumber = rhs.eventNumber;
     this->eventweight = rhs.eventweight;
     this->nDenJets = rhs.nDenJets;
+    this->nDenLJets = rhs.nDenLJets;
+    this->nDenBJets = rhs.nDenBJets;
     this->nDenEle = rhs.nDenEle;
     this->nDenMu = rhs.nDenMu;
     this->nDenLep = rhs.nDenLep;
-    this->nDenTruthLep = rhs.nDenTruthLep;
+    this->nDenFakeEl = rhs.nDenFakeEl;
+    this->nDenRealEl = rhs.nDenRealEl;
+    this->nDenFakeMu = rhs.nDenFakeMu;
+    this->nDenRealMu = rhs.nDenRealMu;
     this->nDenPassORJets = rhs.nDenPassORJets;
+    this->nDenPassORLJets = rhs.nDenPassORLJets;
+    this->nDenPassORBJets = rhs.nDenPassORBJets;
     this->nDenPassOREle = rhs.nDenPassOREle;
     this->nDenPassORMu = rhs.nDenPassORMu;
     this->nDenPassORLep = rhs.nDenPassORLep;
+    this->nDenPassORFakeEl = rhs.nDenPassORFakeEl;
+    this->nDenPassORRealEl = rhs.nDenPassORRealEl;
+    this->nDenPassORFakeMu = rhs.nDenPassORFakeMu;
+    this->nDenPassORRealMu = rhs.nDenPassORRealMu;
+    this->nNumJets = rhs.nNumJets;
+    this->nNumLJets = rhs.nNumLJets;
+    this->nNumBJets = rhs.nNumBJets;
     this->JetEta = rhs.JetEta;
     this->JetPhi = rhs.JetPhi;
     this->JetPt = rhs.JetPt;
@@ -118,15 +139,28 @@ public:
     this->Branch ("eventNumber", &eventNumber);
     this->Branch ("eventweight", &eventweight);
     this->Branch ("nDenJets", &nDenJets);
+    this->Branch ("nDenLJets", &nDenLJets);
+    this->Branch ("nDenBJets", &nDenBJets);
     this->Branch ("nDenEle", &nDenEle);
     this->Branch ("nDenMu", &nDenMu);
     this->Branch ("nDenLep", &nDenLep);
-    this->Branch ("nDenTruthLep", &nDenTruthLep);
+    this->Branch ("nDenFakeEl", &nDenFakeEl);
+    this->Branch ("nDenRealEl", &nDenRealEl);
+    this->Branch ("nDenFakeMu", &nDenFakeMu);
+    this->Branch ("nDenRealMu", &nDenRealMu);
     this->Branch ("nDenPassORJets", &nDenPassORJets);
+    this->Branch ("nDenPassORLJets", &nDenPassORLJets);
+    this->Branch ("nDenPassORBJets", &nDenPassORBJets);
     this->Branch ("nDenPassOREle", &nDenPassOREle);
     this->Branch ("nDenPassORMu", &nDenPassORMu);
     this->Branch ("nDenPassORLep", &nDenPassORLep);
-
+    this->Branch ("nDenPassORFakeEl", &nDenPassORFakeEl);
+    this->Branch ("nDenPassORRealEl", &nDenPassORRealEl);
+    this->Branch ("nDenPassORFakeMu", &nDenPassORFakeMu);
+    this->Branch ("nDenPassORRealMu", &nDenPassORRealMu);
+    this->Branch ("nNumJets", &nNumJets);
+    this->Branch ("nNumLJets", &nNumLJets);
+    this->Branch ("nNumBJets", &nNumBJets);
     JetEta = new vector<float>();
     this->Branch ("JetEta", &JetEta);
     JetPhi = new vector<float>();

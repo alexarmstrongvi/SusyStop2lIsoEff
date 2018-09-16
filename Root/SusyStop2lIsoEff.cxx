@@ -115,8 +115,8 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
         Susy::NtSys::SusyNtSys sys = Susy::NtSys::NOM;
         EffTree* conf = m_conf_vec.at(conf_id-1);
         HistTree* h_tree = m_hist_vec.at(conf_id-1);
-        map<const Susy::Lepton*, int> lep_idx;
-        map<const Susy::Jet*, int> jet_idx;
+        map<const Susy::Lepton*, int> lep_idx_map;
+        map<const Susy::Jet*, int> jet_idx_map;
 
         // Record event variables
         h_tree->runNumber = run_number;
@@ -140,22 +140,24 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
         if (m_baseLeptons.size() < 2) { continue; }
 
         h_tree->nDenJets = m_baseJets.size();
+        h_tree->nDenLJets = m_baseJets.size() - n_btag_jets(m_baseJets);
+        h_tree->nDenBJets = n_btag_jets(m_baseJets);
         h_tree->nDenEle = m_baseElectrons.size();
         h_tree->nDenMu = m_baseMuons.size();
         h_tree->nDenLep = m_baseLeptons.size();
-        h_tree->nDenRealEl = n_fakeEl_beforeOR;
-        h_tree->nDenFakeEl = n_realEl_beforeOR;
-        h_tree->nDenRealMu = n_fakeMu_beforeOR;
-        h_tree->nDenFakeMu = n_realMu_beforeOR;
+        h_tree->nDenRealEl = n_realEl_beforeOR;
+        h_tree->nDenFakeEl = n_fakeEl_beforeOR;
+        h_tree->nDenRealMu = n_realMu_beforeOR;
+        h_tree->nDenFakeMu = n_fakeMu_beforeOR;
 
         // Get pointers to leading and subleading leptons
-        const Susy::Lepton* lead_den_lep = m_baseLeptons.at(0);
-        const Susy::Lepton* sublead_den_lep = m_baseLeptons.at(1);
+        //const Susy::Lepton* lead_den_lep = m_baseLeptons.at(0);
+        //const Susy::Lepton* sublead_den_lep = m_baseLeptons.at(1);
 
         // Fill lepton variables
         for(int ii = 0 ; ii < m_baseLeptons.size(); ii++) {
             const Susy::Lepton* lep = m_baseLeptons.at(ii);
-            lep_idx.emplace(lep, ii);
+            lep_idx_map.emplace(lep, ii);
             h_tree->LepEta->push_back(lep->Eta());
             h_tree->LepPhi->push_back(lep->Phi());
             h_tree->LepPt->push_back(lep->Pt());
@@ -179,10 +181,11 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
             h_tree->dR_LepClosestJet->push_back(dRy);
             h_tree->dR_ClosestJetIdx->push_back(jet_idx);
         }
+
         // Fill jet variables
         for (int ii = 0 ; ii < m_baseJets.size(); ii++) {
             const Susy::Jet* jet = m_baseJets.at(ii);
-            jet_idx.emplace(jet, ii);
+            jet_idx_map.emplace(jet, ii);
             h_tree->JetEta->push_back(jet->Eta());
             h_tree->JetPhi->push_back(jet->Phi());
             h_tree->JetPt->push_back(jet->Pt());
@@ -216,12 +219,12 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
         m_baseLeptons.clear();
         m_nttools.buildLeptons(m_baseLeptons, m_baseElectrons, m_baseMuons);
         for(const auto lep : m_baseLeptons) {
-            h_tree->LepPassEMuOR->at(lep_idx.at(lep)) = true;
+            h_tree->LepPassEMuOR->at(lep_idx_map.at(lep)) = true;
         }
         m_nttools.overlapTool().j_e_overlap(m_baseElectrons, m_baseJets, 0.2, conf->j_e_bjet_or);
         m_nttools.overlapTool().e_j_overlap(m_baseElectrons, m_baseJets, 0.4, conf->e_j_sliding_cone_or, true);
         for(const auto jet : m_baseJets) {
-            h_tree->JetPassOREle->at(jet_idx.at(jet)) = true;
+            h_tree->JetPassOREle->at(jet_idx_map.at(jet)) = true;
         }
         //m_nttools.overlapTool().j_m_overlap(m_baseJets, m_baseMuons, 0.2, conf->j_m_bjet_or, true);
         for(int iJ = m_baseJets.size()-1; iJ>=0; iJ--){
@@ -238,7 +241,7 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
                 float ptRatio = mu->Pt() / j->Pt() * 1.0;
                 float trkRatio = mu->Pt() / j->sumTrkPt * 1.0;
                 if( (j->nTracks >= 3) && ( ptRatio<0.5 || trkRatio<0.7) ) {
-                    h_tree->JetPassORPtRatio->at(jet_idx.at(j)) = true;
+                    h_tree->JetPassORPtRatio->at(jet_idx_map.at(j)) = true;
                     continue;
                 }
 
@@ -247,13 +250,13 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
                 float dR =0.2;
                 if(j->DeltaRy(*mu) < dR) {
                     remove_jet = true;
-                    h_tree->JetPassORDeltaRy->at(jet_idx.at(j)) = true;
+                    h_tree->JetPassORDeltaRy->at(jet_idx_map.at(j)) = true;
                 }
                 bool doGhost = true;
                 if(doGhost) {
                     if(m_nttools.overlapTool().muonIsGhostMatched(mu, j)) {
                         remove_jet = true;
-                        h_tree->JetPassORGhostMatched->at(jet_idx.at(j)) = true;
+                        h_tree->JetPassORGhostMatched->at(jet_idx_map.at(j)) = true;
                     }
                 }
                 if(remove_jet) {
@@ -271,27 +274,29 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
         int n_fakeMu_afterOR = n_fake_leptons(m_baseMuons);
         int n_realMu_afterOR = n_real_leptons(m_baseMuons);
         h_tree->nDenPassORJets = m_baseJets.size();
+        h_tree->nDenPassORLJets = m_baseJets.size() - n_btag_jets(m_baseJets);
+        h_tree->nDenPassORBJets = n_btag_jets(m_baseJets);
         h_tree->nDenPassOREle = m_baseElectrons.size();
         h_tree->nDenPassORMu = m_baseMuons.size();
         h_tree->nDenPassORLep = m_baseLeptons.size();
-        h_tree->nDenPassORRealEl = n_fakeEl_afterOR;
-        h_tree->nDenPassORFakeEl = n_realEl_afterOR;
-        h_tree->nDenPassORRealMu = n_fakeMu_afterOR;
-        h_tree->nDenPassORFakeMu = n_realMu_afterOR;
+        h_tree->nDenPassORRealEl = n_realEl_afterOR;
+        h_tree->nDenPassORFakeEl = n_fakeEl_afterOR;
+        h_tree->nDenPassORRealMu = n_realMu_afterOR;
+        h_tree->nDenPassORFakeMu = n_fakeMu_afterOR;
 
         // Set lepton flags
-        bool lead_den_lep_pass_or = false, sublead_den_lep_pass_or = false;
-        if (std::find(m_baseLeptons.begin(), m_baseLeptons.end(), lead_den_lep) != m_baseLeptons.end()) {
-            lead_den_lep_pass_or = true;
-        }
-        if (std::find(m_baseLeptons.begin(), m_baseLeptons.end(), sublead_den_lep) != m_baseLeptons.end()) {
-            sublead_den_lep_pass_or = true;
-        }
+        //bool lead_den_lep_pass_or = false, sublead_den_lep_pass_or = false;
+        //if (std::find(m_baseLeptons.begin(), m_baseLeptons.end(), lead_den_lep) != m_baseLeptons.end()) {
+        //    lead_den_lep_pass_or = true;
+        //}
+        //if (std::find(m_baseLeptons.begin(), m_baseLeptons.end(), sublead_den_lep) != m_baseLeptons.end()) {
+        //    sublead_den_lep_pass_or = true;
+        //}
         for(const auto lep : m_baseLeptons) {
-            h_tree->LepPassOR->at(lep_idx.at(lep)) = true;
+            h_tree->LepPassOR->at(lep_idx_map.at(lep)) = true;
         }
         for(const auto jet : m_baseJets) {
-            h_tree->JetPassOR->at(jet_idx.at(jet)) = true;
+            h_tree->JetPassOR->at(jet_idx_map.at(jet)) = true;
         }
 
         // Filter for signal objects
@@ -306,19 +311,22 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
         int n_realEl_signal = n_real_leptons(m_signalElectrons);
         int n_fakeMu_signal = n_fake_leptons(m_signalMuons);
         int n_realMu_signal = n_real_leptons(m_signalMuons);
+        h_tree->nNumJets = m_signalJets.size();
+        h_tree->nNumLJets = m_signalJets.size() - n_btag_jets(m_signalJets);
+        h_tree->nNumBJets = n_btag_jets(m_signalJets);
 
-        bool lead_den_lep_pass_num = false, sublead_den_lep_pass_num = false;
-        if (std::find(m_signalLeptons.begin(), m_signalLeptons.end(), lead_den_lep) != m_signalLeptons.end()) {
-            lead_den_lep_pass_num = true;
-        }
-        if (std::find(m_signalLeptons.begin(), m_signalLeptons.end(), sublead_den_lep) != m_signalLeptons.end()) {
-            sublead_den_lep_pass_num = true;
-        }
+        //bool lead_den_lep_pass_num = false, sublead_den_lep_pass_num = false;
+        //if (std::find(m_signalLeptons.begin(), m_signalLeptons.end(), lead_den_lep) != m_signalLeptons.end()) {
+        //    lead_den_lep_pass_num = true;
+        //}
+        //if (std::find(m_signalLeptons.begin(), m_signalLeptons.end(), sublead_den_lep) != m_signalLeptons.end()) {
+        //    sublead_den_lep_pass_num = true;
+        //}
         for(const auto lep : m_signalLeptons) {
-            h_tree->LepPassSignal->at(lep_idx.at(lep)) = true;
+            h_tree->LepPassSignal->at(lep_idx_map.at(lep)) = true;
         }
         for(const auto jet : m_signalJets) {
-            h_tree->JetPassSignal->at(jet_idx.at(jet)) = true;
+            h_tree->JetPassSignal->at(jet_idx_map.at(jet)) = true;
         }
 
         // Get event weight
@@ -332,23 +340,21 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
         h_tree->eventweight = m_mc_weight;
 
         // check that the event passes the standard ATLAS event cleaning cuts
-        if(!passEventCleaning(m_preMuons, m_baseMuons, m_baseJets)) return false;
+        if(!passEventCleaning(m_preMuons, m_baseMuons, m_baseJets)) {
+            lep_idx_map.clear();
+            jet_idx_map.clear();
+            h_tree->clear();
+            return false;
+        }
 
         // Increment counters
         bool leading_lep_eff = false;
         bool subleading_lep_eff = false;
         // m_mc_weight = 1; // Turn off event weights
 
-        if (leading_lep_eff) {
-          //conf->n_fake_den_leps += lead_den_lep ? m_mc_weight : 0;
-          //conf->n_fake_den_leps_pass_or += lead_den_lep_pass_or ? m_mc_weight : 0;
-          //conf->n_fake_num_leps += lead_den_lep_pass_num ? m_mc_weight : 0;
-          cout << "STUB\n";
-        } else if (subleading_lep_eff) {
-          //conf->n_fake_den_leps += sublead_den_lep ? m_mc_weight : 0;
-          //conf->n_fake_den_leps_pass_or += sublead_den_lep_pass_or ? m_mc_weight : 0;
-          //conf->n_fake_num_leps += sublead_den_lep_pass_num ? m_mc_weight : 0;
-          cout << "STUB\n";
+        if (leading_lep_eff || subleading_lep_eff) {
+          // Only store statistics on leading or subleading lepton
+            cout << "STUB\n";
         } else {
           conf->n_fake_den_el += n_fakeEl_beforeOR * m_mc_weight;
           conf->n_fake_den_el_pass_or += n_fakeEl_afterOR * m_mc_weight;
@@ -367,7 +373,8 @@ Bool_t SusyStop2lIsoEff::Process(Long64_t entry)
           conf->n_real_num_mu += n_realMu_signal * m_mc_weight;
         }
 
-        lep_idx.clear();
+        lep_idx_map.clear();
+        jet_idx_map.clear();
         if (m_make_hists) h_tree->Fill();
         h_tree->clear();
     }
@@ -487,7 +494,7 @@ MuonVector SusyStop2lIsoEff::getBaselineMuons(const MuonVector& preMuons, const 
     // Defs from https://indico.cern.ch/event/725960/contributions/2987219/attachments/1641430/2621432/TruthDef_April242018.pdf
     bool promptEl1 = T==IsoElectron; //&& noChargeFlip;
     bool promptEl2 = (bkgEl_from_phoConv && mother_is_el); //&& noChargeFlip;
-    bool promptEl3 = bkgEl_from_EMproc && MT==IsoElectron && MfromSMBoson; //TESTING(MO==top || MfromSMBoson);
+    bool promptEl3 = bkgEl_from_EMproc && MT==IsoElectron && (MO==top || MfromSMBoson);
     bool promptEl = promptEl1 || promptEl2 || promptEl3;
 
     bool promptEl_from_FSR1 = bkgEl_from_phoConv && MO==FSRPhot;
@@ -563,27 +570,15 @@ MuonVector SusyStop2lIsoEff::getBaselineMuons(const MuonVector& preMuons, const 
     }
     return 0;
 }
-int SusyStop2lIsoEff::n_real_leptons(const LeptonVector& leptons) {
-    uint n_real_leptons = 0;
-    for (auto lep : leptons) {
-        int truth_class = get_lepton_truth_class(lep);
-        bool prompt_el = (truth_class == 1);
-        bool prompt_mu = (truth_class == 2);
-        if (prompt_el || prompt_mu) n_real_leptons++;
+int SusyStop2lIsoEff::n_btag_jets(const JetVector& jets) {
+    uint n_bjets = 0;
+    for (const Jet* jet : jets) {
+        if (m_nttools.overlapTool().isBJetOR(jet)) {
+            n_bjets++;
+        }
     }
-    return n_real_leptons;
+   return n_bjets; 
 }
-int SusyStop2lIsoEff::n_fake_leptons(const LeptonVector& leptons) {
-    uint n_fake_leptons = 0;
-    for (auto lep : leptons) {
-        int truth_class = get_lepton_truth_class(lep);
-        bool prompt_el = (truth_class == 1);
-        bool prompt_mu = (truth_class == 2);
-        if (!prompt_el && !prompt_mu) n_fake_leptons++;
-    }
-    return n_fake_leptons;
-}
-
 
 bool SusyStop2lIsoEff::passEventCleaning(const MuonVector& preMuons, const MuonVector& baseMuons,
             const JetVector& baseJets)
