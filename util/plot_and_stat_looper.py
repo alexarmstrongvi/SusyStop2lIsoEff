@@ -1,6 +1,14 @@
 #!/bin/env python
 
+from math import sqrt
+
 import ROOT as r
+r.TH1F.__init__._creates = False
+r.TH1D.__init__._creates = False
+r.TGraphErrors.__init__._creates = False
+r.TGraphAsymmErrors.__init__._creates = False
+r.TLegend.__init__._creates = False
+r.THStack.__init__._creates = False
 r.gROOT.SetBatch(True)
 r.gStyle.SetOptStat(False)
 
@@ -8,16 +16,18 @@ ifile_name = "../run/isoEff.root"
 #ifile_name = "../run/isoEff_signal_389945_bWN_250_160_10000.root"
 #ifile_name = "../run/isoEff_signal_389949_bWN_300_150_10000.root"
 #ifile_name = "../run/isoEff_signal_389988_bffN_300_250_10000.root"
-ttree_name = "histTree_conf1"
-ttree_name2 = "histTree_conf2"
+ttree_name1 = "histTree_conf1","Jet-Mu BJet OR"
+ttree_name2 = "histTree_conf2","No Jet-Mu BJet OR"
 plot_dir = "./"
 save_fmt = "pdf"
 
+ifile = r.TFile(ifile_name,"r")
 _file_tree_names = [
-    (ifile_name, ttree_name),
+    (ifile_name, ttree_name1),
     (ifile_name, ttree_name2),
 ]
 
+base_sel = "1"
 jet_types = []#'Jets','LJets','BJets']
 vars_to_print = {
     'LepPt'        : r.TH1F("LepPt","Title; pT(lep); nLeptons",50,0,200),
@@ -40,24 +50,24 @@ vars_to_print = {
     'LepTruthClass'        : r.TH1F("LepTruthClass","Title; Lepton Truth Class; nLeptons",16,-4.5,11.5),
     #'LepTruthClass[0]'        : r.TH1F("Lep0TruthClass","Title; Lepton0 Truth Class; Events",16,-4.5,11.5),
     #'LepTruthClass[1]'        : r.TH1F("Lep1TruthClass","Title; Lepton1 Truth Class; Events",16,-4.5,11.5),
-    'JetPt'        : r.TH1F("JetPt","Title; pT(jets); nJets",50,0,250),
+    #'JetPt'        : r.TH1F("JetPt","Title; pT(jets); nJets",50,0,250),
     #'JetPt[0]'        : r.TH1F("JetPt0","Title; pt(j0); Events",50,0,250),
     #'JetPt[1]'        : r.TH1F("JetPt1","Title; pt(j1); Events",50,0,250),
     #'JetPt[2]'        : r.TH1F("JetPt2","Title; pt(j2); Events",50,0,250),
     ##'JetPt[3]'        : r.TH1F("JetPt3","Title; pt(j3); Events",50,0,250),
     ##'JetPt[4]'        : r.TH1F("JetPt4","Title; pt(j4); Events",50,0,250),
-    'JetEta'        : r.TH1F("JetEta","Title; #eta(jets); nJets",50,-5,5),
+    #'JetEta'        : r.TH1F("JetEta","Title; #eta(jets); nJets",50,-5,5),
     #'JetEta[0]'        : r.TH1F("JetEta0","Title; #eta(j0); Events",50,-5,5),
     #'JetEta[1]'        : r.TH1F("JetEta1","Title; #eta(j1); Events",50,-5,5),
     #'JetEta[2]'        : r.TH1F("JetEta2","Title; #eta(j2); Events",50,-5,5),
     ##'JetEta[3]'        : r.TH1F("JetEta3","Title; #eta(j3); Events",50,-5,5),
     ##'JetEta[4]'        : r.TH1F("JetEta4","Title; #eta(j4); Events",50,-5,5),
-    'dR_JetClosestLep'        : r.TH1F("dR_JetClosestLep","Title; #DeltaR(jet,closest lep); nJets",60,0,6),
+    #'dR_JetClosestLep'        : r.TH1F("dR_JetClosestLep","Title; #DeltaR(jet,closest lep); nJets",60,0,6),
     #'dR_JetClosestLep[0]'        : r.TH1F("dR_Jet0ClosestLep","Title; #DeltaR(jet0,closest lep); nJets",60,0,6),
     #'dR_JetClosestLep[1]'        : r.TH1F("dR_Jet1ClosestLep","Title; #DeltaR(jet1,closest lep); nJets",60,0,6),
     #'dR_JetClosestLep[2]'        : r.TH1F("dR_Jet2ClosestLep","Title; #DeltaR(jet2,closest lep); nJets",60,0,6),
     #'dR_JetClosestLep[3]'        : r.TH1F("dR_Jet3ClosestLep","Title; #DeltaR(jet3,closest lep); nJets",60,0,6),
-    'JetTruth'        : r.TH1F("JetTruth","Title; Jet Truth Class; nLeptons",18,-1.5,17.5),
+    #'JetTruth'        : r.TH1F("JetTruth","Title; Jet Truth Class; nLeptons",18,-1.5,17.5),
 }
 _el_tuple = ('LepIsEle','1==LepTruthClass', 'RealEle')
 _fel_tuple = ('LepIsEle','1!=LepTruthClass', 'FakeEle')
@@ -68,8 +78,8 @@ _fbjet_tuple = ('JetBTagged','5!=JetTruth', 'FakeBJet')
 _ljet_tuple = ('!JetBTagged','5!=JetTruth', 'RealLJet')
 _fljet_tuple = ('!JetBTagged','5==JetTruth', 'FakeLJet')
 
-_lep_list = [el_tuple, fel_tuple, mu_tuple, fmu_tuple]
-_jet_list = [bjet_tuple, fbjet_tuple, ljet_tuple, fljet_tuple]
+_lep_list = [_el_tuple, _fel_tuple, _mu_tuple, _fmu_tuple]
+_jet_list = [_bjet_tuple, _fbjet_tuple, _ljet_tuple, _fljet_tuple]
 
 def isLepVar(var):
     return var.startswith('Lep') or var.startswith('dR_Lep')
@@ -81,9 +91,9 @@ def main():
         hist.Sumw2()
         flavor_sels =  _lep_list if isLepVar(var) else _jet_list
 
-        can.cd(1).SetLogy(True)
 
         for flavor_sel, flavor_truth, flavor_name in flavor_sels:
+            print "===== Making plots for", flavor_name, "=====" 
             pass_or = 'LepPassOR' if isLepVar(var) else 'JetPassOR'
             pass_signal = 'LepPassSignal' if isLepVar(var) else 'JetPassSignal'
             if var.endswith("]"):
@@ -100,13 +110,17 @@ def main():
 
             conf_hists = {}
             for ifile_name, ttree_name in _file_tree_names:
-                ifile = r.TFile(ifile_name,"r")
-                ttree = ifile.Get(ttree_name)
-                conf_hists[ifile_name+'_'+tree_name] = HistTuple(ttree, var, hist, den_sel, or_sel, sig_sel)
+                #ifile = r.TFile(ifile_name,"r")
+                global ifile
+                ttree = ifile.Get(ttree_name[0])
+                print ">> Making plots for", ttree.GetName()
+                key = ifile_name.split('/')[-1].split('.')[0] + '_' + ttree_name[0]
+                conf_hists[key] = HistTuple(ttree, var, hist, den_sel, or_sel, sig_sel, conf_name=ttree_name[1])
 
             for name, hists in conf_hists.items():
                 save_name = plot_dir + hists.base_hist.GetName()+"_" + flavor_name + "." + save_fmt
-                make_conf_plots(name, hists, save_name)
+                title = "Baseline#rightarrowOR#rightarrowSignal Efficiency (%s)" % flavor_name
+                make_conf_plots(name, hists, title, save_name)
 
             compared_pairs = []
             for name1, hists1 in conf_hists.items():
@@ -116,41 +130,45 @@ def main():
                     else: compared_pairs.append((name1, name2))
                     if (name2, name1) in compared_pairs: continue
                     else: compared_pairs.append((name2, name1))
-                    save_name = plot_dir + hists.base_hist.GetName()+ "_" + name1 +"_" name2 +"_"+ flavor_name + "." + save_fmt
+                    save_name = plot_dir + hists1.base_hist.GetName()+ "_" +name2 +"_"+ flavor_name + "." + save_fmt
                     make_conf_compare_plots(name1, hists1, name2, hists2, save_name)
-        for ifile_name, ttree_name in _file_tree_names:
 
     for ifile_name, ttree_name in _file_tree_names:
         ifile = r.TFile(ifile_name,"r")
-        ttree = ifile.Get(ttree_name)
+        ttree = ifile.Get(ttree_name[0])
 
         for jet_type in jet_types:
             save_name = plot_dir + "n" + jet_type + "." + save_fmt
-            make_njet_plots(ttree, jet_type, save_name)
+            make_njet_plots(ttree, jet_type, base_sel, save_name)
 
         calculate_stats(ttree)
 
 class HistTuple:
-    self.base_sel = "1"
-    self.weight = 'eventweight'
+    weight = 'eventweight'
     # Format (line color, fill color, line_width)
-    self.base_format = (r.kBlack, r.kGray, 5)
-    self.or_format = (r.kRed, r.r.kRed-10, 3)
-    self.sig_format = (r.kGreen+3, r.kGreen-10, 1)
+    base_format = (r.kBlack, r.kGray, 5)
+    or_format = (r.kRed, r.kRed-10, 3)
+    sig_format = (r.kGreen+3, r.kGreen-10, 1)
 
-    def __init__(self, ttree, hist, var, den_sel, or_sel, sig_sel):
+    def __init__(self, ttree, var, hist, den_sel, or_sel, sig_sel, conf_name="Conf"):
         self.var = var
-        self.ttree_name = ttree.GetName()
-        self.base_hist = self.format_base_hist(hist)
-        self.or_hist = self.base_hist.Clone(hist.GetName()+"_or")
-        self.sig_hist = self.base_hist.Clone(hist.GetName()+"_sig")
+        self.conf_name = conf_name
 
-        fill_hists(self.base_hist, ttree, den_sel, self.base_format)
-        fill_hists(self.or_hist, ttree, or_sel, self.or_format)
-        fill_hists(self.sig_hist, ttree, sig_sel, self.sig_format)
+        base_name = hist.GetName() + '_' + ttree.GetName()
+        counter = 0
+        while r.gDirectory.Get(base_name + "_base" + str(counter)):
+            counter += 1
+        self.base_hist = self.format_base_hist(hist.Clone(base_name + "_base" + str(counter)))
+        self.or_hist = self.base_hist.Clone(base_name + "_or" + str(counter))
+        self.sig_hist = self.base_hist.Clone(base_name + "_sig" + str(counter))
+        #self.base_hist.SetName(hist.GetName()+'_base')
 
-        self.or_eff_graph = make_eff_graph(num=self.or_hist, den=self.base_hist, color=self.or_format[0])
-        self.sig_eff_graph = make_eff_graph(num=self.sig_hist, den=self.or_hist, color=self.sig_format[0])
+        self.fill_hist(var, self.base_hist, ttree, den_sel, self.base_format)
+        self.fill_hist(var, self.or_hist, ttree, or_sel, self.or_format)
+        self.fill_hist(var, self.sig_hist, ttree, sig_sel, self.sig_format)
+
+        self.or_eff = self.make_eff_graph(num=self.or_hist, den=self.base_hist, color=self.or_format[0])
+        self.sig_eff = self.make_eff_graph(num=self.sig_hist, den=self.or_hist, color=self.sig_format[0])
 
     def format_base_hist(self, hist):
         xax = hist.GetXaxis()
@@ -160,19 +178,22 @@ class HistTuple:
         yax.SetTitleSize(0.06)
         return hist
 
-    def fill_hist(self, hist, sel, format_tuple):
-            draw_cmd = "%s >> %s" % (var, hist.GetName())
-            ttree.Draw(draw_cmd, '(%s) * %s' % (sel, self.weight))
-            hist.SetLineColor(format_tuple[0])
-            hist.SetFillColor(format_tuple[1])
-            hist.SetLineWidth(format_tuple[2])
+    def fill_hist(self, var, hist, ttree, sel, format_tuple):
+        draw_cmd = "%s >> %s" % (var, hist.GetName())
+        ttree.Draw(draw_cmd, '(%s) * %s' % (sel, self.weight))
+        hist.SetLineColor(format_tuple[0])
+        hist.SetFillColor(format_tuple[1])
+        hist.SetLineWidth(format_tuple[2])
 
-    def make_eff_graph(num, den, color):
-            eff_graph = r.TEfficiency(num, den)
-            eff_graph.SetLineColor(color)
-            return eff_graph
+    def make_eff_graph(self, num, den, color):
+        print "\nDumping TEfficiency crap"
+        eff_graph = r.TEfficiency(num, den)
+        eff_graph.SetStatisticOption(r.TEfficiency.kFNormal)
+        eff_graph.SetLineColor(color)
+        print "\n"
+        return eff_graph
 
-def make_conf_plots(name, hists, save_name):
+def make_conf_plots(name, hists, title, save_name):
     c_name = "c_" + name
     can = r.TCanvas(c_name,"",800,600)
     can.Divide(1,2)
@@ -193,12 +214,18 @@ def make_conf_plots(name, hists, save_name):
     # Paint top pad
     can.cd(1)
     hists.base_hist.SetMinimum(0.1)
+    p1.SetLogy(True)
     hists.base_hist.Draw("hist")
     hists.or_hist.Draw("hist same")
     hists.sig_hist.Draw("hist same")
-    title = "Baseline#rightarrowOR#rightarrowSignal Efficiency (%s)" % flavor_name
     hists.base_hist.SetTitle(title)
     can.RedrawAxis()
+    
+    leg = r.TLegend(0.7,0.7,0.88,0.85)
+    leg.AddEntry(hists.base_hist, "Baseline","l")
+    leg.AddEntry(hists.or_hist, "OR","l")
+    leg.AddEntry(hists.sig_hist, "Signal","l")
+    leg.Draw()
 
     # Paint bottom pad
     can.cd(2)
@@ -226,6 +253,7 @@ def make_conf_plots(name, hists, save_name):
     p2.Update()
 
     can.SaveAs(save_name)
+    can.Close()
 
 def make_conf_compare_plots(name1, hists1, name2, hists2, save_name):
     c_name = "c_" + name1 + '_' + name2
@@ -250,13 +278,15 @@ def make_conf_compare_plots(name1, hists1, name2, hists2, save_name):
     x_label = hists1.base_hist.GetXaxis().GetTitle()
     mg = r.TMultiGraph('mg',';%s;Efficiency' % x_label)
     or_eff_graph1 = hists1.or_eff.CreateGraph()
+    or_eff_graph1.SetLineColor(r.kYellow+3)
     mg.Add(or_eff_graph1, 'P')
     or_eff_graph2 = hists2.or_eff.CreateGraph()
+    or_eff_graph2.SetLineColor(r.kViolet)
     mg.Add(or_eff_graph2, 'P')
 
     mg.Draw('AP')
-    xmin = hists.base_hist.GetXaxis().GetXmin()
-    xmax = hists.base_hist.GetXaxis().GetXmax()
+    xmin = hists1.base_hist.GetXaxis().GetXmin()
+    xmax = hists1.base_hist.GetXaxis().GetXmax()
     mg.GetXaxis().SetLimits(xmin, xmax)
     mg_hist = mg.GetHistogram()
     mg_hist.SetMinimum(-0.1)
@@ -270,13 +300,16 @@ def make_conf_compare_plots(name1, hists1, name2, hists2, save_name):
     p1.Modified()
     p1.Update()
 
+    leg = r.TLegend(0.6,0.05,0.85,0.2)
+    leg.AddEntry(or_eff_graph1, hists1.conf_name, "lep")
+    leg.AddEntry(or_eff_graph2, hists2.conf_name, "lep")
+    leg.Draw()
+
     can.cd(2)
     eff_plot = tgraphAsymmErrors_divide(or_eff_graph1, or_eff_graph2)
     eff_plot.Draw('AP')
     eff_plot.GetXaxis().SetLimits(xmin, xmax)
     h_ef = eff_plot.GetHistogram()
-    h_ef.SetMinimum(-0.1)
-    h_ef.SetMaximum(1.1)
     h_ef.SetLabelSize(0.08,'X')
     h_ef.SetLabelSize(0.08,'Y')
     h_ef.SetTitleSize(0.1,'X')
@@ -286,9 +319,12 @@ def make_conf_compare_plots(name1, hists1, name2, hists2, save_name):
     p2.Modified()
     p2.Update()
 
-    can.SaveAs(save_name)
 
-def make_njet_plots(ttree, jet_type, save_name):
+    can.SaveAs(save_name)
+    can.Close()
+
+
+def make_njet_plots(ttree, jet_type, base_sel, save_name):
     var = 'nDen' + jet_type
     or_var = 'nDenPassOR' + jet_type
     sig_var = 'nNum' + jet_type
@@ -333,22 +369,22 @@ def tgraphAsymmErrors_divide(g_num, g_den) :
     n_den = g_den.GetN()
     if n_num != n_den :
         print "tgraphAsymmErrors_divide ERROR    input TGraphs do not have same number of entries!"
-    g3 = ROOT.TGraphAsymmErrors()
+    g3 = r.TGraphAsymmErrors()
 
     iv = 0
     for inum in xrange(n_num) :
         for iden in xrange(n_den) :
-            x_num = ROOT.Double(0.0)
-            y_num = ROOT.Double(0.0)
-            x_den = ROOT.Double(0.0)
-            y_den = ROOT.Double(0.0)
+            x_num = r.Double(0.0)
+            y_num = r.Double(0.0)
+            x_den = r.Double(0.0)
+            y_den = r.Double(0.0)
 
 
-            ex = ROOT.Double(0.0)
-            ey_num_up = ROOT.Double(0.0)
-            ey_num_dn = ROOT.Double(0.0)
-            ey_den_up = ROOT.Double(0.0)
-            ey_den_dn = ROOT.Double(0.0)
+            ex = r.Double(0.0)
+            ey_num_up = r.Double(0.0)
+            ey_num_dn = r.Double(0.0)
+            ey_den_up = r.Double(0.0)
+            ey_den_dn = r.Double(0.0)
 
             g_num.GetPoint(inum, x_num, y_num)
             g_den.GetPoint(iden, x_den, y_den)
@@ -362,14 +398,16 @@ def tgraphAsymmErrors_divide(g_num, g_den) :
                 ey_den_up = g_den.GetErrorYhigh(iden)/y_den
                 ey_den_dn = g_den.GetErrorYlow(iden)/y_den
 
-            if y_num <= 0. or y_den <= 0.:
+            if y_num == y_den == 0:
+                g3.SetPoint(iv, x_num, 1)
+            elif y_num <= 0. or y_den <= 0.:
                 g3.SetPoint(iv, x_num, -10)
             else:
                 g3.SetPoint(iv, x_num, y_num/y_den)
             ex = g_num.GetErrorX(iv)
 
-            e_up = ROOT.Double(0.0)
-            e_dn = ROOT.Double(0.0)
+            e_up = r.Double(0.0)
+            e_dn = r.Double(0.0)
             if y_num > 0 and y_den > 0 :
                 e_up = sqrt(ey_num_up*ey_num_up + ey_den_up*ey_den_up)*(y_num/y_den)
                 e_dn = sqrt(ey_num_dn*ey_num_dn + ey_den_dn*ey_den_dn)*(y_num/y_den)
@@ -399,34 +437,34 @@ def calculate_stats(ttree):
     n_trueL_killas = 0
 
     for ilep in range(0):
-    ttree.Draw("LepIsEle[%d] >> h_LepIsEle" % ilep, base_sel)
-    n_leps += h_LepIsEle.Integral(0,-1)
+        ttree.Draw("LepIsEle[%d] >> h_LepIsEle" % ilep, base_sel)
+        n_leps += h_LepIsEle.Integral(0,-1)
 
-    sel_str = "dR_LepClosestJet[%d] < 0.2 && LepPassEMuOR[%d] && !LepPassOR[%d]" % (ilep, ilep, ilep)
-    ttree.Draw("LepIsEle[%d] >> h_LepIsEle" % ilep, base_sel + " && " + sel_str)
-    n_el_rm += h_LepIsEle.GetBinContent(2)
-    n_mu_rm += h_LepIsEle.GetBinContent(1)
+        sel_str = "dR_LepClosestJet[%d] < 0.2 && LepPassEMuOR[%d] && !LepPassOR[%d]" % (ilep, ilep, ilep)
+        ttree.Draw("LepIsEle[%d] >> h_LepIsEle" % ilep, base_sel + " && " + sel_str)
+        n_el_rm += h_LepIsEle.GetBinContent(2)
+        n_mu_rm += h_LepIsEle.GetBinContent(1)
 
-    sel_str += " && dR_LepClosestJet[%d] < 0.2 && JetPassOR[dR_ClosestJetIdx[%d]] && JetBTagged[dR_ClosestJetIdx[%d]]" % (ilep, ilep, ilep)
-    ttree.Draw("LepIsEle[%d] >> h_LepIsEle" % ilep, base_sel + " && " + sel_str)
-    print base_sel + " && " + sel_str
-    n_el_rm_by_btag += h_LepIsEle.GetBinContent(2)
-    n_mu_rm_by_btag += h_LepIsEle.GetBinContent(1)
+        sel_str += " && dR_LepClosestJet[%d] < 0.2 && JetPassOR[dR_ClosestJetIdx[%d]] && JetBTagged[dR_ClosestJetIdx[%d]]" % (ilep, ilep, ilep)
+        ttree.Draw("LepIsEle[%d] >> h_LepIsEle" % ilep, base_sel + " && " + sel_str)
+        print base_sel + " && " + sel_str
+        n_el_rm_by_btag += h_LepIsEle.GetBinContent(2)
+        n_mu_rm_by_btag += h_LepIsEle.GetBinContent(1)
 
-    ttree.Draw("LepTruthClass[%d] >> h_LepTruthClass" % ilep, base_sel + " && " + sel_str + " && LepIsEle[%d]" % ilep)
-    print base_sel + " && " + sel_str + " && LepIsEle[%d]" % ilep
-    n_true_el_rm += h_LepTruthClass.GetBinContent(1 + 4)
+        ttree.Draw("LepTruthClass[%d] >> h_LepTruthClass" % ilep, base_sel + " && " + sel_str + " && LepIsEle[%d]" % ilep)
+        print base_sel + " && " + sel_str + " && LepIsEle[%d]" % ilep
+        n_true_el_rm += h_LepTruthClass.GetBinContent(1 + 4)
 
-    ttree.Draw("LepTruthClass[%d] >> h_LepTruthClass" % ilep, base_sel + " && " + sel_str + " && !LepIsEle[%d]" % ilep)
-    print base_sel + " && " + sel_str + " && !LepIsEle[%d]" % ilep
-    n_true_mu_rm += h_LepTruthClass.GetBinContent(2 + 4)
+        ttree.Draw("LepTruthClass[%d] >> h_LepTruthClass" % ilep, base_sel + " && " + sel_str + " && !LepIsEle[%d]" % ilep)
+        print base_sel + " && " + sel_str + " && !LepIsEle[%d]" % ilep
+        n_true_mu_rm += h_LepTruthClass.GetBinContent(2 + 4)
 
-    ttree.Draw("JetTruth[dR_ClosestJetIdx[%d]] >> h_JetTruth" % ilep, base_sel + " && " + sel_str)
-    #n_bjet_killas += h_JetTruth.Integral(0,-1)
-    n_trueB_killas += h_JetTruth.GetBinContent(5 + 1)
-    n_trueC_killas += h_JetTruth.GetBinContent(4 + 1)
-    n_trueT_killas += h_JetTruth.GetBinContent(15 + 1)
-    n_trueL_killas += h_JetTruth.GetBinContent(0 + 1)
+        ttree.Draw("JetTruth[dR_ClosestJetIdx[%d]] >> h_JetTruth" % ilep, base_sel + " && " + sel_str)
+        #n_bjet_killas += h_JetTruth.Integral(0,-1)
+        n_trueB_killas += h_JetTruth.GetBinContent(5 + 1)
+        n_trueC_killas += h_JetTruth.GetBinContent(4 + 1)
+        n_trueT_killas += h_JetTruth.GetBinContent(15 + 1)
+        n_trueL_killas += h_JetTruth.GetBinContent(0 + 1)
 
     print "Statistics summary"
     print "File name:", ifile_name

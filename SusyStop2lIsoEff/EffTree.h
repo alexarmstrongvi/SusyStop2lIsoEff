@@ -26,7 +26,7 @@ vector<int> mu_iso_WP_ops = {isoGradientLoose};
 vector<int> truth_matching_ops = {false};
 vector<bool> j_e_bjet_or_ops = {true};
 vector<bool> e_j_sliding_cone_or_ops= {false};
-vector<bool> j_m_bjet_or_ops = {true};
+vector<bool> j_m_bjet_or_ops = {true, false};
 vector<bool> m_j_sliding_cone_or_ops = {true};
 
 class EffTree : public TTree

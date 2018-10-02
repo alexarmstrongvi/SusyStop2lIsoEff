@@ -84,7 +84,7 @@ void SusyStop2lIsoEff::Begin(TTree* /*tree*/)
 
         // Only fill histogram tree when running one configuration
         // This prevents the file size from becoming huge accidentally
-        if (config_counter > 1) m_make_hists = false;
+        if (config_counter > 2) m_make_hists = false;
     }}}}}}}}}}}
 
     return;
